@@ -18,11 +18,11 @@ Task tool (general-purpose):
 
     | Category | What to Look For |
     |----------|------------------|
-    | Completeness | TODOs, placeholders, "TBD", incomplete sections |
-    | Consistency | Internal contradictions, conflicting requirements |
-    | Clarity | Requirements ambiguous enough to cause someone to build the wrong thing |
-    | Scope | Focused enough for a single plan — not covering multiple independent subsystems |
-    | YAGNI | Unrequested features, over-engineering |
+    | 完整性 | 是否缺少项目类型对应的必备图表？ASCII 框图框线是否对齐？Mermaid 语法是否正确？ |
+    | 内部一致性 | 各章节之间是否有矛盾？架构图是否与功能描述匹配？流程图是否覆盖了文字描述的所有路径？ |
+    | 清晰度 | 是否有需求可以被两种不同方式解读？ |
+    | 范围 | 是否聚焦于单个实施计划，不覆盖多个独立子系统？ |
+    | YAGNI | 是否有未经请求的功能、过度设计？ |
 
     ## Calibration
 
