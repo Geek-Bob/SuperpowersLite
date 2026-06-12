@@ -2,9 +2,22 @@
 
 ASCII 框图 + Mermaid 图表的语法规范和示例。
 
+## 两阶段图表策略
+
+| 阶段 | 工具 | 目的 | 风格 |
+|------|------|------|------|
+| 交互阶段（展示设计） | ASCII 框图 | 和用户边讨论边澄清，快速迭代 | 随手画，可擦改 |
+| 文档阶段（写设计文档） | Mermaid | 嵌入 Spec 正式呈现，可渲染可维护 | 规范完整，嵌入 markdown |
+
 ## 选图规则
 
 怎么摆、怎么连 → ASCII 框图。怎么走、怎么变 → Mermaid。
+
+| 项目类型 | 交互阶段（ASCII） | 文档阶段（Mermaid） |
+|---------|------------------|-------------------|
+| 🖥️ UI | ASCII 布局原型 | flowchart + stateDiagram |
+| ⚙️ 后端/API | ASCII 架构图 | sequenceDiagram + erDiagram |
+| 🔗 全栈 | ASCII 布局 + ASCII 架构 | flowchart + sequenceDiagram |
 
 ## ASCII 框图
 
