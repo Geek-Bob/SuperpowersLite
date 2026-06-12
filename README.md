@@ -77,7 +77,7 @@
 
 | 对比项 | 原始 | 改造后 |
 |--------|------|--------|
-| 👤 审查员 | spec-reviewer | task-reviewer |
+| 👤 审查员 | spec-reviewer | spec-reviewer（对照原始规格验证） |
 | 🚫 Controller 角色 | 可自我审查 | **纯协调者，禁止审查** |
 | 📊 改动程度 | 🔴 **极大** — 修复架构缺陷 |
 
@@ -137,7 +137,7 @@
 │  │   ⚡ 强制加载 TDD 技能：Red→Green→Refactor 循环              │  │
 │  │   → 自审 → 提交 → 报告 DONE                             │  │
 │  │                                                        │  │
-│  │ 🔍 第一阶段：派发 task-reviewer 子代理                   │  │
+│  │ 🔍 第一阶段：派发 spec-reviewer 子代理                   │  │
 │  │   → 对照验收标准 + Spec Reference（按需读取）验证         │  │
 │  │   → 有问题 → SendMessage 原实现者修复 → 重新审查         │  │
 │  │   → 合规 ✅                                             │  │
@@ -176,7 +176,7 @@
 | `writing-plans/SKILL.md` | 🌐 英文，代码副本生成器 | 🇨🇳 中文，轻量任务分解 + 计划审查子代理 | 🔴 **极大** |
 | `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 中文，独立审查子代理模板 | 🟡 中 |
 | `subagent-driven-dev/SKILL.md` | 🌐 英文，可自我审查 | 🇨🇳 中文，强制派发审查 | 🔴 **极大** |
-| `task-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `task-reviewer` + Spec Reference | 🟡 中 |
+| `spec-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `spec-reviewer` + Spec Reference | 🟡 中 |
 | `code-quality-reviewer-prompt.md` | 🌐 英文 | 🇨🇳 中文 | ⚪ 极小 |
 | `implementer-prompt.md` | 🌐 英文，TDD 可选 | 🇨🇳 中文，强制加载 TDD 技能 | 🟡 中 |
 | `requesting-code-review/SKILL.md` | 🌐 英文 | 🇨🇳 中文 | 🔵 小 |

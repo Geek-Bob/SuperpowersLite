@@ -76,7 +76,7 @@ description: 当你有设计文档或多步骤任务的需求时使用，在接�
 
 **目标：** [一句话——此任务交付什么]
 
-**设计文档索引：** `docs/superpowers/specs/<名称>-design.md#<标题锚点>` — task-reviewer 按需读取
+**设计文档索引：** `docs/superpowers/specs/<名称>-design.md#<标题锚点>` — spec-reviewer 对照原始规格验证
 
 > **必须是精确的章节锚点，不是整个文件。** 从设计文档中复制对应章节的标题，转换为 anchor 格式：
 > - 标题 `### Agent 管理` → `#agent-管理`
@@ -85,6 +85,20 @@ description: 当你有设计文档或多步骤任务的需求时使用，在接�
 >
 > **错误示例：** `spec.md`（整个文件）、`spec.md#`（空锚点）、`spec.md#<章节>`（占位符）
 > **正确示例：** `spec.md#核心功能`、`spec.md#agent-管理`、`spec.md#切换机制`
+>
+> 设计文档索引仅传递给 spec-reviewer，不给实现者。
+
+**需求描述：**
+[3-5 句话——模块职责、输入/输出、关键行为、约束条件。让子代理理解它要构建什么]
+
+**模块职责：**
+- 这个模块在系统中做什么
+- 它解决什么问题
+
+**上下游依赖：**
+- 依赖哪些模块/服务
+- 被哪些模块/服务依赖
+- 数据从哪里来、到哪里去
 
 **文件：**
 - 创建：`exact/path/to/file.ts`
@@ -97,40 +111,32 @@ description: 当你有设计文档或多步骤任务的需求时使用，在接�
 - [ ] 删除对话级联删除消息
 - [ ] 所有测试通过：`npx vitest run src/path/to/file.test.ts`
 
-**测试用例：**
-1. `createConversation('test', 'gpt-4')` 返回正数 id
-2. `listConversations()` 包含新创建的对话
-3. `deleteConversation(id)` 删除对话及其消息
-4. `getConversation(deletedId)` 返回 undefined
-
 **步骤：**
-1. 为以上测试用例编写失败的测试
+1. 编写测试（遵循 TDD 技能：Red → Green → Refactor）
 2. 运行测试，验证失败
-3. 实现 createConversation、listConversations、deleteConversation
+3. 实现使测试通过
 4. 运行测试，验证通过
 5. 提交
 ````
 
-> **验收标准 vs 步骤：** 验收标准用 `- [ ]` checkbox，是任务交付物的质量契约——task-reviewer 对照它验证，控制器按它标记完成。步骤用纯有序列表，是实现者的 TDD 工作流程指引，不需要外部跟踪。
+> **验收标准 vs 步骤：** 验收标准用 `- [ ]` checkbox，是任务交付物的质量契约——spec-reviewer 对照它验证，控制器按它标记完成。步骤用纯有序列表，是实现者的 TDD 工作流程指引，不需要外部跟踪。
 
 ## 禁止占位符
 
-每个任务必须有明确的验收标准。以下是**计划失败**——永远不要写这些：
+每个任务必须有明确的需求描述和验收标准。以下是**计划失败**——永远不要写这些：
 - "TBD"、"TODO"、"稍后实现"、"补充细节"
 - "添加适当的错误处理" / "添加校验" / "处理边界情况"（没有具体标准）
-- "为以上编写测试"（没有测试用例描述）
-- "与 Task N 类似"（重复标准——子代理可能不按顺序读取任务）
+- 需求描述为空或只有一句话
+- 没有模块职责和上下游依赖
 - 引用未在任何任务中定义的类型、函数或方法
-- Spec Reference 使用占位符（`#<章节>`）或只指向整个文件（`spec.md` 无锚点）
+- 设计文档索引使用占位符（`#<章节>`）或只指向整个文件（`spec.md` 无锚点）
 
-**OK to omit:** Implementation code, boilerplate, import statements. Subagent will write these.
-
-**Spec Reference is REQUIRED for every task.** It must point to a specific section heading in the design doc, not the whole file. Use the exact heading text converted to anchor format. Never write `#<section>` as a placeholder — copy the actual heading from the design doc.
+**可省略的内容：** 实现代码、具体测试用例。子代理通过 TDD 技能自行编写测试。
 
 ## 牢记
 
 - 始终使用精确的文件路径
-- 每个任务有清晰的验收标准（测试用例，而非实现）
+- 每个任务有清晰的需求描述、模块职责和验收标准（不写测试用例——那是 TDD 的事）
 - 精确的命令及预期输出
 - DRY、YAGNI、TDD、频繁提交
 - 当任务涉及不同文件时，应可并行执行
@@ -139,19 +145,7 @@ description: 当你有设计文档或多步骤任务的需求时使用，在接�
 
 计划提交后，派发独立子代理审查。使用 `skills/writing-plans/plan-document-reviewer-prompt.md` 模板构建 prompt。
 
-审查通过后才能进入自审阶段。如果子代理发现问题，修复计划后重新提交并重新审查，直到通过。
 
-## 自审
-
-审查子代理通过后，用新的眼光对照设计文档检查计划。这是你自己执行的检查清单——不是派发子代理。
-
-**1. 设计文档覆盖：** 浏览设计文档中的每个章节/需求。你能指出一个实现它的任务吗？列出任何遗漏。
-
-**2. 占位符扫描：** 在计划中搜索红旗——上面"禁止占位符"章节中的任何模式。特别检查每个任务的 Spec Reference 是否指向精确章节锚点（不是占位符 `#<章节>`，不是整个文件路径无锚点）。修复它们。
-
-**3. 类型一致性：** 你在后续任务中使用的类型、方法签名和属性名是否与前面任务中定义的匹配？Task 3 中的函数叫 `clearLayers()` 但 Task 7 中叫 `clearFullLayers()` 就是一个 bug。
-
-如果发现问题，内联修复。不需要重新审查——修复后直接继续。如果发现设计文档中有需求没有对应任务，添加任务。
 
 ## 用户确认门控（强制阻断）
 

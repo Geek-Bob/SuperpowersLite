@@ -77,7 +77,7 @@ The original Superpowers was born when models were weaker — plan files had to 
 
 | Aspect | Original | Lite |
 |--------|----------|------|
-| 👤 Reviewer | spec-reviewer | task-reviewer |
+| 👤 Reviewer | spec-reviewer | spec-reviewer (validate against original spec) |
 | 🚫 Controller Role | Could self-review | **Pure coordinator, no review** |
 | 📊 Impact | 🔴 **Massive** — architecture fix |
 
@@ -138,7 +138,7 @@ The original Superpowers was born when models were weaker — plan files had to 
 │  │   ⚡ Enforced TDD: Red→Green→Refactor cycle               │  │
 │  │   → Self-review → Commit → Report DONE                 │  │
 │  │                                                        │  │
-│  │ 🔍 Stage 1: Dispatch task-reviewer subagent            │  │
+│  │ 🔍 Stage 1: Dispatch spec-reviewer subagent            │  │
 │  │   → Verify against acceptance criteria + Spec Ref      │  │
 │  │   → Issues? SendMessage original implementer → Re-check│  │
 │  │   → Compliant ✅                                       │  │
@@ -177,7 +177,7 @@ The original Superpowers was born when models were weaker — plan files had to 
 | `writing-plans/SKILL.md` | 🌐 English, code-clone gen. | 🇨🇳 Chinese, light task decomp. + plan review subagent | 🔴 **Massive** |
 | `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, independent review subagent template | 🟡 Medium |
 | `subagent-driven-dev/SKILL.md` | 🌐 English, self-review OK | 🇨🇳 Chinese, mandatory review | 🔴 **Massive** |
-| `task-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `task-reviewer` + Spec Ref | 🟡 Medium |
+| `spec-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `spec-reviewer` + Spec Ref | 🟡 Medium |
 | `code-quality-reviewer-prompt.md` | 🌐 English | 🇨🇳 Chinese | ⚪ Minimal |
 | `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD loading | 🟡 Medium |
 | `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese | 🔵 Small |
