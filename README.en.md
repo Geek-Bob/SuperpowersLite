@@ -16,7 +16,7 @@
 
 ---
 
-> 🎯 **Remove code from plans. Let subagents truly TDD.**
+> 🎯 **Remove code from plans. Let subagents truly TDD. · Diagram-Driven Design · Mandatory Review Gates**
 
 ---
 
@@ -44,6 +44,8 @@ The original Superpowers was born when models were weaker — plan files had to 
 | 4️⃣ | **Controller self-review**, meaningless | **Mandatory independent subagent review**: two-stage gating |
 | 5️⃣ | **New subagent for fixes**, losing context | **SendMessage original implementer**, preserving context |
 | 6️⃣ | **Two execution paths**, double maintenance | **Single execution path**, unified flow |
+| 7️⃣ | Text-only design, no visualization | **Diagram-Driven Design**: ASCII box drawings + Mermaid flowcharts/sequence/state diagrams mandatory |
+| 8️⃣ | TDD is optional, subagents often skip | **Enforced TDD loading**: implementer subagent invokes `Skill("superpowers:test-driven-development")` on startup |
 
 ### 📋 Original vs Lite: File-by-File
 
@@ -95,7 +97,10 @@ The original Superpowers was born when models were weaker — plan files had to 
 │                                                              │
 │  Explore context → Ask clarifying questions → Propose 2-3    │
 │  solutions → Section-by-section design → User confirms       │
+│      → 🎨 Diagram-Driven Design: ASCII layouts + Mermaid       │
+│        flowcharts/sequence/state diagrams                      │
 │      → Write to docs/superpowers/specs/xxx-design.md         │
+│      → Dispatch independent spec-document-reviewer → Self-review│
 │                                                              │
 │  🛑 USER CONFIRMATION GATE (HARD STOP)                       │
 │  "Please review this design document. Any changes needed?"   │
@@ -126,6 +131,7 @@ The original Superpowers was born when models were weaker — plan files had to 
 │  │ Per Task:                                              │  │
 │  │                                                        │  │
 │  │ 🔴🔴🔴 Dispatch implementer (TDD: Red→Green→Refactor)  │  │
+│  │   ⚡ Enforced TDD: Red→Green→Refactor cycle               │  │
 │  │   → Self-review → Commit → Report DONE                 │  │
 │  │                                                        │  │
 │  │ 🔍 Stage 1: Dispatch task-reviewer subagent            │  │
@@ -161,12 +167,15 @@ The original Superpowers was born when models were weaker — plan files had to 
 
 | File | Original | Lite | Impact |
 |------|----------|------|:------:|
-| `brainstorming/SKILL.md` | 🌐 English, suggestive gate | 🇨🇳 Chinese, mandatory gate | 🔵 Small |
-| `writing-plans/SKILL.md` | 🌐 English, code-clone gen. | 🇨🇳 Chinese, light task decomp. | 🔴 **Massive** |
+| `brainstorming/SKILL.md` | 🌐 English, suggestive gate | 🇨🇳 Chinese, mandatory gate + diagram-driven design | 🟡 Medium |
+| `brainstorming/diagram-driven-design.md` | — | 🆕 **New**: ASCII box + Mermaid diagram specs | 🟡 Medium |
+| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, independent review subagent template | 🟡 Medium |
+| `writing-plans/SKILL.md` | 🌐 English, code-clone gen. | 🇨🇳 Chinese, light task decomp. + plan review subagent | 🔴 **Massive** |
+| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, independent review subagent template | 🟡 Medium |
 | `subagent-driven-dev/SKILL.md` | 🌐 English, self-review OK | 🇨🇳 Chinese, mandatory review | 🔴 **Massive** |
 | `task-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `task-reviewer` + Spec Ref | 🟡 Medium |
 | `code-quality-reviewer-prompt.md` | 🌐 English | 🇨🇳 Chinese | ⚪ Minimal |
-| `implementer-prompt.md` | 🌐 English | 🇨🇳 Chinese | ⚪ Minimal |
+| `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD loading | 🟡 Medium |
 | `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese | 🔵 Small |
 | `code-reviewer.md` | 🌐 English | 🇨🇳 Chinese | ⚪ Minimal |
 | ~~`executing-plans/SKILL.md`~~ | 🌐 English (78 lines) | ❌ **Deleted** | ⚫ Removed |
@@ -178,14 +187,14 @@ The original Superpowers was born when models were weaker — plan files had to 
 ### 📦 Installation
 
 ```bash
-# Register the plugin in Claude Code
+# Clone the Lite repository
+git clone https://github.com/Geek-Bob/SuperpowersLite.git
+
+# Register the official plugin (for non-skill files: hooks, config, etc.)
 claude plugins install superpowers@obra
-```
 
-Then copy the `skills/` files from this repo to the plugin directory:
-
-```bash
-~/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/
+# Overwrite official skills with Lite skills
+cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/
 ```
 
 ### 🎬 Start Developing

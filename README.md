@@ -16,7 +16,7 @@
 
 ---
 
-> 🎯 **干掉计划中的代码，让子代理真正 TDD**
+> 🎯 **干掉计划中的代码，让子代理真正 TDD · 图表驱动设计 · 强制审查门控**
 
 ---
 
@@ -44,6 +44,8 @@
 | 4️⃣ | **Controller 自我审查**，毫无意义 | **强制派发独立子代理审查**：两级门控把关 |
 | 5️⃣ | **修复用新子代理**，上下文丢失 | **SendMessage 原实现者修复**，保留上下文 |
 | 6️⃣ | **两套执行路径**，维护成本翻倍 | **单一执行路径**，统一流程 |
+| 7️⃣ | 设计纯文本，缺乏可视化 | **图表驱动设计**：ASCII 框图 + Mermaid 流程图/时序图/状态图强制产出 |
+| 8️⃣ | TDD 可选，子代理经常跳过 | **强制加载 TDD 技能**：实现者子代理启动即调用 `Skill("superpowers:test-driven-development")` |
 
 ### 📋 原始 vs 改造：逐文件对比
 
@@ -95,7 +97,9 @@
 │                                                              │
 │  探索上下文 → 逐个提问澄清 → 提出 2-3 种方案                    │
 │      → 分段呈现设计 → 用户逐段确认                              │
+│      → 🎨 图表驱动设计：ASCII 布局原型 + Mermaid 流程图/时序图/状态图 │
 │      → 写入 docs/superpowers/specs/xxx-design.md               │
+│      → 派发独立 spec-document-reviewer 子代理审查 → 自审          │
 │                                                              │
 │  🛑 用户确认门控（强制阻断）                                   │
 │  "请审阅这份设计文档，是否有需要修改的地方？"                    │
@@ -126,6 +130,7 @@
 │  │ Per Task:                                              │  │
 │  │                                                        │  │
 │  │ 🔴🔴🔴 派发实现者子代理（TDD: Red→Green→Refactor）      │  │
+│  │   ⚡ 强制加载 TDD 技能：Red→Green→Refactor 循环              │  │
 │  │   → 自审 → 提交 → 报告 DONE                             │  │
 │  │                                                        │  │
 │  │ 🔍 第一阶段：派发 task-reviewer 子代理                   │  │
@@ -161,12 +166,15 @@
 
 | 文件 | 原始 | 改造后 | 改动程度 |
 |------|------|--------|:--------:|
-| `brainstorming/SKILL.md` | 🌐 英文，建议性门控 | 🇨🇳 中文，强制阻断 | 🔵 小 |
-| `writing-plans/SKILL.md` | 🌐 英文，代码副本生成器 | 🇨🇳 中文，轻量任务分解 | 🔴 **极大** |
+| `brainstorming/SKILL.md` | 🌐 英文，建议性门控 | 🇨🇳 中文，强制阻断 + 图表驱动设计 | 🟡 中 |
+| `brainstorming/diagram-driven-design.md` | — | 🆕 **新增**：ASCII 框图 + Mermaid 图表规范 | 🟡 中 |
+| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 中文，独立审查子代理模板 | 🟡 中 |
+| `writing-plans/SKILL.md` | 🌐 英文，代码副本生成器 | 🇨🇳 中文，轻量任务分解 + 计划审查子代理 | 🔴 **极大** |
+| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 中文，独立审查子代理模板 | 🟡 中 |
 | `subagent-driven-dev/SKILL.md` | 🌐 英文，可自我审查 | 🇨🇳 中文，强制派发审查 | 🔴 **极大** |
 | `task-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `task-reviewer` + Spec Reference | 🟡 中 |
 | `code-quality-reviewer-prompt.md` | 🌐 英文 | 🇨🇳 中文 | ⚪ 极小 |
-| `implementer-prompt.md` | 🌐 英文 | 🇨🇳 中文 | ⚪ 极小 |
+| `implementer-prompt.md` | 🌐 英文，TDD 可选 | 🇨🇳 中文，强制加载 TDD 技能 | 🟡 中 |
 | `requesting-code-review/SKILL.md` | 🌐 英文 | 🇨🇳 中文 | 🔵 小 |
 | `code-reviewer.md` | 🌐 英文 | 🇨🇳 中文 | ⚪ 极小 |
 | ~~`executing-plans/SKILL.md`~~ | 🌐 英文（78 行） | ❌ **已删除** | ⚫ 删除 |
@@ -178,14 +186,14 @@
 ### 📦 安装
 
 ```bash
-# 在 Claude Code 中注册插件
+# 克隆 Lite 仓库
+git clone https://github.com/Geek-Bob/SuperpowersLite.git
+
+# 注册官方插件（获取非技能文件：hooks、配置等）
 claude plugins install superpowers@obra
-```
 
-然后将本仓库中 `skills/` 下的改造文件覆盖到插件目录：
-
-```bash
-~/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/
+# 用 Lite 技能覆盖官方技能
+cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/
 ```
 
 ### 🎬 启动开发
