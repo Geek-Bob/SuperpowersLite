@@ -27,7 +27,7 @@ Gemini CLI 原生支持通过 `@` 语法派发子代理。使用内置的 `@gene
 | `Task tool (superpowers:implementer)` | `@generalist` 加上填充完成的 `implementer-prompt.md` 模板 |
 | `Task tool (superpowers:spec-reviewer)` | `@generalist` 加上填充完成的 `spec-reviewer-prompt.md` 模板 |
 | `Task tool (superpowers:code-reviewer)` | `@code-reviewer`（内置代理）或 `@generalist` 加上填充完成的审查提示 |
-| `Task tool (superpowers:code-quality-reviewer)` | `@generalist` 加上填充完成的 `code-quality-reviewer-prompt.md` 模板 |
+| `Task tool (superpowers:spec-reviewer)` | `@generalist` 加上填充完成的 `spec-reviewer-prompt.md` 模板 |
 | `Task tool (general-purpose)` 配合内联提示 | `@generalist` 加上你的内联提示 |
 
 ### 提示填充

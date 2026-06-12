@@ -143,8 +143,8 @@ The original Superpowers was born when models were weaker — plan files had to 
 │  │   → Issues? New implementer (original context + issues) → Re-check│  │
 │  │   → Compliant ✅                                       │  │
 │  │                                                        │  │
-│  │ 🧪 Stage 2: Dispatch code-quality-reviewer subagent    │  │
-│  │   → Check code quality / architecture / tests          │  │
+│  │ 🧪 Stage 2: Controller calls requesting-code-review      │  │
+│  │   → Get BASE_SHA/HEAD_SHA → Dispatch code-reviewer       │  │
 │  │   → Issues? New implementer (original context + issues) → Re-check│  │
 │  │   → Pass ✅                                            │  │
 │  │                                                        │  │
@@ -178,10 +178,9 @@ The original Superpowers was born when models were weaker — plan files had to 
 | `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, independent review subagent template | 🟡 Medium |
 | `subagent-driven-dev/SKILL.md` | 🌐 English, self-review OK | 🇨🇳 Chinese, mandatory review | 🔴 **Massive** |
 | `spec-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `spec-reviewer` + Spec Ref | 🟡 Medium |
-| `code-quality-reviewer-prompt.md` | 🌐 English | 🇨🇳 Chinese | ⚪ Minimal |
 | `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD loading | 🟡 Medium |
-| `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese | 🔵 Small |
-| `code-reviewer.md` | 🌐 English | 🇨🇳 Chinese | ⚪ Minimal |
+| `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese, triggered in Stage 2 per task | 🔵 Small |
+| `code-reviewer.md` | 🌐 English | 🇨🇳 Chinese, added architecture/file responsibility checks | 🟡 Medium |
 | ~~`executing-plans/SKILL.md`~~ | 🌐 English (78 lines) | ❌ **Deleted** | ⚫ Removed |
 
 ---

@@ -142,8 +142,8 @@
 │  │   → 有问题 → 派新实现者修复（附带原始上下文 + 问题清单）→ 重新审查 │  │
 │  │   → 合规 ✅                                             │  │
 │  │                                                        │  │
-│  │ 🧪 第二阶段：派发 code-quality-reviewer 子代理           │  │
-│  │   → 检查代码质量/架构/测试                               │  │
+│  │ 🧪 第二阶段：Controller 调用 requesting-code-review     │  │
+│  │   → 获取 BASE_SHA/HEAD_SHA → 派 code-reviewer 子代理     │  │
 │  │   → 有问题 → 派新实现者修复（附带原始上下文 + 问题清单）→ 重新审查 │  │
 │  │   → 通过 ✅                                             │  │
 │  │                                                        │  │
@@ -155,6 +155,7 @@
 ┌──────────────────────────────────────────────────────────────┐
 │           ④ requesting-code-review 👀（整体审查）              │
 │                                                              │
+│  所有任务完成后，再次调用 requesting-code-review               │
 │  派发 code-reviewer 子代理 → BASE_SHA ~ HEAD_SHA 全量审查     │
 └──────────────────────────┬───────────────────────────────────┘
                            │
@@ -177,10 +178,9 @@
 | `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 中文，独立审查子代理模板 | 🟡 中 |
 | `subagent-driven-dev/SKILL.md` | 🌐 英文，可自我审查 | 🇨🇳 中文，强制派发审查 | 🔴 **极大** |
 | `spec-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `spec-reviewer` + Spec Reference | 🟡 中 |
-| `code-quality-reviewer-prompt.md` | 🌐 英文 | 🇨🇳 中文 | ⚪ 极小 |
 | `implementer-prompt.md` | 🌐 英文，TDD 可选 | 🇨🇳 中文，强制加载 TDD 技能 | 🟡 中 |
-| `requesting-code-review/SKILL.md` | 🌐 英文 | 🇨🇳 中文 | 🔵 小 |
-| `code-reviewer.md` | 🌐 英文 | 🇨🇳 中文 | ⚪ 极小 |
+| `requesting-code-review/SKILL.md` | 🌐 英文 | 🇨🇳 中文，Per Task 内第二阶段触发 | 🔵 小 |
+| `code-reviewer.md` | 🌐 英文 | 🇨🇳 中文，新增架构/文件职责检查点 | 🟡 中 |
 | ~~`executing-plans/SKILL.md`~~ | 🌐 英文（78 行） | ❌ **已删除** | ⚫ 删除 |
 
 ---

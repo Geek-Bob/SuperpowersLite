@@ -25,7 +25,7 @@ description: 在当前会话中执行实施计划时使用。计划已确认后�
 派实现者 → TDD/测试/提交/自审
   → 派 spec-reviewer → 合规？
     → ❌ 派新实现者修复（附带原始上下文 + 审查问题清单）→ 重新审查
-    → ✅ 派 code-quality-reviewer → 通过？
+    → ✅ Controller 调用 requesting-code-review → 通过？
       → ❌ 派新实现者修复（附带原始上下文 + 审查问题清单）→ 重新审查
       → ✅ TodoWrite 完成 + Edit 计划 checkbox [-]
 ```
@@ -47,9 +47,10 @@ TodoWrite 标记完成后，立即 Edit 计划文件：`- [ ]` → `- [x]`。进
 
 ### 第二阶段：代码质量
 
-1. 派 code-quality-reviewer 子代理，模板 `./code-quality-reviewer-prompt.md`
-2. ❌ → 派新实现者修复（附带原始任务上下文 + 审查员问题清单）→ 派新 code-quality-reviewer 重新审查
-3. ✅ → 标记完成
+1. Controller 调用 `Skill("superpowers:requesting-code-review")`
+2. 技能加载后，按指引获取 BASE_SHA/HEAD_SHA，填 `code-reviewer.md` 模板，派子代理
+3. ❌ → 派新实现者修复（附带原始任务上下文 + 审查员问题清单）→ 重新调用 requesting-code-review
+4. ✅ → 标记完成
 
 ### 派发铁律
 
@@ -88,7 +89,7 @@ TodoWrite 标记完成后，立即 Edit 计划文件：`- [ ]` → `- [x]`。进
 
 - `./implementer-prompt.md` — 实现者
 - `./spec-reviewer-prompt.md` — 规格合规审查员
-- `./code-quality-reviewer-prompt.md` — 代码质量审查员
+- `skills/requesting-code-review/code-reviewer.md` — 代码质量审查员（通过 requesting-code-review 技能调用）
 
 ## 红线
 
