@@ -1,38 +1,34 @@
-# Codex Tool Mapping
+# Codex 工具映射
 
-Skills use Claude Code tool names. When you encounter these in a skill, use your platform equivalent:
+技能使用 Claude Code 的工具名称。当你在技能中遇到这些名称时，请使用你平台上的对应项：
 
-| Skill references | Codex equivalent |
+| 技能引用项 | Codex 对应项 |
 |-----------------|------------------|
-| `Task` tool (dispatch subagent) | `spawn_agent` (see [Subagent dispatch requires multi-agent support](#subagent-dispatch-requires-multi-agent-support)) |
-| Multiple `Task` calls (parallel) | Multiple `spawn_agent` calls |
-| Task returns result | `wait_agent` |
-| Task completes automatically | `close_agent` to free slot |
-| `TodoWrite` (task tracking) | `update_plan` |
-| `Skill` tool (invoke a skill) | Skills load natively — just follow the instructions |
-| `Read`, `Write`, `Edit` (files) | Use your native file tools |
-| `Bash` (run commands) | Use your native shell tools |
+| `Task` 工具（派发子代理） | `spawn_agent`（参见[子代理派发需要多代理支持](#子代理派发需要多代理支持)） |
+| 多个 `Task` 调用（并行） | 多个 `spawn_agent` 调用 |
+| Task 返回结果 | `wait_agent` |
+| Task 自动完成 | `close_agent` 释放槽位 |
+| `TodoWrite`（任务跟踪） | `update_plan` |
+| `Skill` 工具（调用技能） | 技能原生加载——直接遵循指令即可 |
+| `Read`、`Write`、`Edit`（文件） | 使用你的原生文件工具 |
+| `Bash`（运行命令） | 使用你的原生 shell 工具 |
 
-## Subagent dispatch requires multi-agent support
+## 子代理派发需要多代理支持
 
-Add to your Codex config (`~/.codex/config.toml`):
+添加到你的 Codex 配置中（`~/.codex/config.toml`）：
 
 ```toml
 [features]
 multi_agent = true
 ```
 
-This enables `spawn_agent`, `wait_agent`, and `close_agent` for skills like `dispatching-parallel-agents` and `subagent-driven-development`.
+此配置启用 `spawn_agent`、`wait_agent` 和 `close_agent`，用于 `dispatching-parallel-agents` 和 `subagent-driven-development` 等技能。
 
-Legacy note: Codex builds before `rust-v0.115.0` exposed spawned-agent
-waiting as `wait`. Current Codex uses `wait_agent` for spawned agents. The
-`wait` name now belongs to code-mode `exec/wait`, which resumes a yielded exec
-cell by `cell_id`; it is not the spawned-agent result tool.
+遗留说明：`rust-v0.115.0` 之前的 Codex 构建版本将派生子代理的等待暴露为 `wait`。当前 Codex 对派生子代理使用 `wait_agent`。`wait` 名称现在归属于代码模式的 `exec/wait`，用于通过 `cell_id` 恢复一个已挂起的执行单元；它不是派生子代理的结果工具。
 
-## Environment Detection
+## 环境检测
 
-Skills that create worktrees or finish branches should detect their
-environment with read-only git commands before proceeding:
+创建工作树或完成分支的技能应在继续之前，使用只读 git 命令检测其环境：
 
 ```bash
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
@@ -40,20 +36,16 @@ GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
 BRANCH=$(git branch --show-current)
 ```
 
-- `GIT_DIR != GIT_COMMON` → already in a linked worktree (skip creation)
-- `BRANCH` empty → detached HEAD (cannot branch/push/PR from sandbox)
+- `GIT_DIR != GIT_COMMON` → 已在链接的工作树中（跳过创建）
+- `BRANCH` 为空 → 分离 HEAD（无法从沙箱进行分支/推送/PR）
 
-See `using-git-worktrees` Step 0 and `finishing-a-development-branch`
-Step 1 for how each skill uses these signals.
+请参见 `using-git-worktrees` 的第 0 步和 `finishing-a-development-branch` 的第 1 步，了解每个技能如何使用这些信号。
 
-## Codex App Finishing
+## Codex 应用完成操作
 
-When the sandbox blocks branch/push operations (detached HEAD in an
-externally managed worktree), the agent commits all work and informs
-the user to use the App's native controls:
+当沙箱阻止分支/推送操作（在外部管理工作树中处于分离 HEAD 状态）时，代理会提交所有工作并告知用户使用应用的本地控制功能：
 
-- **"Create branch"** — names the branch, then commit/push/PR via App UI
-- **"Hand off to local"** — transfers work to the user's local checkout
+- **"Create branch"（创建分支）** — 命名分支，然后通过应用 UI 进行提交/推送/PR
+- **"Hand off to local"（移交到本地）** — 将工作传输到用户的本地检出
 
-The agent can still run tests, stage files, and output suggested branch
-names, commit messages, and PR descriptions for the user to copy.
+代理仍然可以运行测试、暂存文件，并输出建议的分支名称、提交消息和 PR 描述，供用户复制使用。
