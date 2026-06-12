@@ -118,6 +118,7 @@
 │      → 每个任务：Goal + Spec Reference(精确锚点)                │
 │        + 验收标准(checkbox) + 测试用例 + 步骤(有序列表)          │
 │      → 写入 docs/superpowers/plans/xxx.md                      │
+│      → 派发独立 plan-document-reviewer 子代理审查 → 自审          │
 │                                                              │
 │  🛑 用户确认门控（强制阻断）                                   │
 │  "请审阅这份实施计划。任务拆分是否合理？"                        │

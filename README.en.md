@@ -119,6 +119,7 @@ The original Superpowers was born when models were weaker — plan files had to 
 │      → Each task: Goal + Spec Reference + Acceptance Criteria│
 │        + Test Cases + Steps (ordered list)                   │
 │      → Write to docs/superpowers/plans/xxx.md                │
+│      → Dispatch independent plan-document-reviewer → Self-review│
 │                                                              │
 │  🛑 USER CONFIRMATION GATE (HARD STOP)                       │
 │  "Please review this plan. Is the decomposition reasonable?" │
