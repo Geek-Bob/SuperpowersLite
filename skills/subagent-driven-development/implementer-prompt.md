@@ -30,7 +30,7 @@ Task 工具 (general-purpose):
 
     一旦你清楚需求：
     1. 严格按照任务要求实现
-    2. 编写测试（如果任务要求 TDD 则遵循 TDD）
+    2. **强制调用 `superpowers:test-driven-development` 技能** — 使用 Skill 工具加载 TDD 技能，严格遵循其 Red→Green→Refactor 循环
     3. 验证实现是否正常工作
     4. 提交你的工作
     5. 自审（见下文）
@@ -91,7 +91,7 @@ Task 工具 (general-purpose):
 
     **测试：**
     - 测试是否真正验证了行为（而非仅仅 mock 行为）？
-    - 如果要求 TDD，我是否遵循了？
+    - 我是否调用了 `superpowers:test-driven-development` 并严格遵循 Red→Green→Refactor？
     - 测试是否全面？
 
     如果在自审中发现问题，在汇报前修复它们。

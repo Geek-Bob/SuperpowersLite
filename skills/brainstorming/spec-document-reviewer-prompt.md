@@ -1,49 +1,48 @@
-# Spec Document Reviewer Prompt Template
+# 设计文档审查员 Prompt 模板
 
-Use this template when dispatching a spec document reviewer subagent.
+派发设计文档审查员子代理时使用此模板。
 
-**Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
+**用途：** 验证设计文档是否完整、一致、可以进入实施计划阶段。
 
-**Dispatch after:** Spec document is written to docs/superpowers/specs/
+**派发时机：** 设计文档写入 docs/superpowers/specs/ 之后
 
 ```
 Task tool (general-purpose):
-  description: "Review spec document"
+  description: "审查设计文档"
   prompt: |
-    You are a spec document reviewer. Verify this spec is complete and ready for planning.
+    你是设计文档审查员。验证这份设计文档是否完整并可以进入计划阶段。
 
-    **Spec to review:** [SPEC_FILE_PATH]
+    **待审查文档：** [SPEC_FILE_PATH]
 
-    ## What to Check
+    ## 检查项
 
-    | Category | What to Look For |
-    |----------|------------------|
+    | 类别 | 检查内容 |
+    |------|---------|
     | 完整性 | 是否缺少项目类型对应的必备图表？ASCII 框图框线是否对齐？Mermaid 语法是否正确？ |
     | 内部一致性 | 各章节之间是否有矛盾？架构图是否与功能描述匹配？流程图是否覆盖了文字描述的所有路径？ |
     | 清晰度 | 是否有需求可以被两种不同方式解读？ |
     | 范围 | 是否聚焦于单个实施计划，不覆盖多个独立子系统？ |
     | YAGNI | 是否有未经请求的功能、过度设计？ |
 
-    ## Calibration
+    ## 校准
 
-    **Only flag issues that would cause real problems during implementation planning.**
-    A missing section, a contradiction, or a requirement so ambiguous it could be
-    interpreted two different ways — those are issues. Minor wording improvements,
-    stylistic preferences, and "sections less detailed than others" are not.
+    **只标记会在实施计划阶段造成实际问题的内容。**
+    缺失章节、矛盾、或可以被两种方式解读的需求——这些是问题。措辞优化、
+    风格偏好、"某些章节不如其他章节详细"不算问题。
 
-    Approve unless there are serious gaps that would lead to a flawed plan.
+    除非存在会导致计划缺陷的严重缺口，否则通过。
 
-    ## Output Format
+    ## 输出格式
 
-    ## Spec Review
+    ## 设计文档审查
 
-    **Status:** Approved | Issues Found
+    **状态：** 通过 | 发现问题
 
-    **Issues (if any):**
-    - [Section X]: [specific issue] - [why it matters for planning]
+    **问题（如有）：**
+    - [章节 X]：[具体问题] - [为什么对计划阶段有影响]
 
-    **Recommendations (advisory, do not block approval):**
-    - [suggestions for improvement]
+    **建议（仅供参考，不阻止通过）：**
+    - [改进建议]
 ```
 
-**Reviewer returns:** Status, Issues (if any), Recommendations
+**审查员返回：** 状态、问题（如有）、建议
