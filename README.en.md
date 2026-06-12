@@ -57,8 +57,10 @@ The original Superpowers was born when models were weaker — plan files had to 
 | Aspect | Original | Lite |
 |--------|----------|------|
 | 🚪 User Gate | Suggestive: "Wait for the user's response…" | **Mandatory**: "HARD STOP" |
+| 🎨 Diagram-Driven Design | ❌ None | ✅ ASCII box drawings + Mermaid mandatory |
+| 🐛 Bug Fix | `spec-document-reviewer-prompt.md` orphaned | ✅ Wired into flow: independent review subagent after design doc |
 | 🌐 Language | English | Chinese |
-| 📊 Impact | 🔵 Small — hardened gate + translation |
+| 📊 Impact | 🟡 Medium — diagrams + reviewer + translation |
 
 #### 2️⃣ writing-plans/SKILL.md (Biggest Change)
 
@@ -68,6 +70,7 @@ The original Superpowers was born when models were weaker — plan files had to 
 | 📄 Content | Full code blocks | Goal + Spec Reference + acceptance criteria |
 | 🔗 Spec Reference | ❌ None | ✅ Precise section anchors |
 | 🚪 User Gate | ❌ None | ✅ Mandatory hard stop |
+| 🐛 Bug Fix | `plan-document-reviewer-prompt.md` orphaned | ✅ Wired into flow: independent review subagent after plan |
 | 📊 Impact | 🔴 **Massive** — complete rewrite |
 
 #### 3️⃣ subagent-driven-development/SKILL.md

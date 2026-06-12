@@ -57,8 +57,10 @@
 | 对比项 | 原始 | 改造后 |
 |--------|------|--------|
 | 🚪 用户确认门控 | 建议性："Wait for the user's response…" | **强制性**："MANDATORY hard stop" |
+| 🎨 图表驱动设计 | ❌ 不存在 | ✅ ASCII 框图 + Mermaid 强制产出 |
+| 🐛 BUG 修复 | `spec-document-reviewer-prompt.md` 是孤儿文件 | ✅ 设计文档写完后强制派发独立审查子代理 |
 | 🌐 语言 | 全英文 | 全中文 |
-| 📊 改动程度 | 🔵 小 — 强化门控 + 翻译 |
+| 📊 改动程度 | 🟡 中 — 图表驱动设计 + 审查子代理 + 中文化 |
 
 #### 2️⃣ writing-plans/SKILL.md（改动最大）
 
@@ -68,6 +70,7 @@
 | 📄 计划内容 | 完整代码块 | Goal + Spec Reference + 验收标准 |
 | 🔗 Spec Reference | ❌ 不存在 | ✅ 精确章节锚点 |
 | 🚪 用户确认门控 | ❌ 不存在 | ✅ 强制阻断 |
+| 🐛 BUG 修复 | `plan-document-reviewer-prompt.md` 是孤儿文件 | ✅ 计划写完后强制派发独立审查子代理 |
 | 📊 改动程度 | 🔴 **极大** — 完全重写 |
 
 #### 3️⃣ subagent-driven-development/SKILL.md
