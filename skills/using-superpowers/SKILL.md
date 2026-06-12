@@ -47,31 +47,35 @@ Superpowers 技能会覆盖默认的系统提示行为，但**用户指令始终
 
 ```dot
 digraph skill_flow {
-    "User message received" [shape=doublecircle];
-    "About to EnterPlanMode?" [shape=doublecircle];
-    "Already brainstormed?" [shape=diamond];
-    "Invoke brainstorming skill" [shape=box];
-    "Might any skill apply?" [shape=diamond];
-    "Invoke Skill tool" [shape=box];
-    "Announce: 'Using [skill] to [purpose]'" [shape=box];
-    "Has checklist?" [shape=diamond];
-    "Create TodoWrite todo per item" [shape=box];
-    "Follow skill exactly" [shape=box];
-    "Respond (including clarifications)" [shape=doublecircle];
+    "收到用户消息" [shape=doublecircle];
+    "可能适用任何技能？" [shape=diamond];
+    "调用 Skill 工具" [shape=box];
+    "宣告：'使用 [技能] 来完成 [目的]'" [shape=box];
+    "有检查清单？" [shape=diamond];
+    "为每项创建任务" [shape=box];
+    "严格遵循技能" [shape=box];
+    "回复（包括澄清问题）" [shape=doublecircle];
 
-    "About to EnterPlanMode?" -> "Already brainstormed?";
-    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
-    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
-    "Invoke brainstorming skill" -> "Might any skill apply?";
+    "准备进入实现？" [shape=doublecircle];
+    "已完成头脑风暴？" [shape=diamond];
+    "调用 brainstorming" [shape=box];
+    "brainstorming\n↓\nwriting-plans\n↓\nsubagent-driven-\ndevelopment" [shape=box, style=filled, fillcolor=lightgrey];
+    "子代理强制加载\nTDD 技能" [shape=box, style=filled, fillcolor=lightgrey];
 
-    "User message received" -> "Might any skill apply?";
-    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
-    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
-    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
-    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
-    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
-    "Has checklist?" -> "Follow skill exactly" [label="no"];
-    "Create TodoWrite todo per item" -> "Follow skill exactly";
+    "收到用户消息" -> "可能适用任何技能？";
+    "可能适用任何技能？" -> "调用 Skill 工具" [label="是，哪怕只有 1%"];
+    "可能适用任何技能？" -> "回复（包括澄清问题）" [label="绝对不适用"];
+    "调用 Skill 工具" -> "宣告：'使用 [技能] 来完成 [目的]'";
+    "宣告：'使用 [技能] 来完成 [目的]'" -> "有检查清单？";
+    "有检查清单？" -> "为每项创建任务" [label="是"];
+    "有检查清单？" -> "严格遵循技能" [label="否"];
+    "为每项创建任务" -> "严格遵循技能";
+
+    "准备进入实现？" -> "已完成头脑风暴？";
+    "已完成头脑风暴？" -> "调用 brainstorming" [label="否"];
+    "已完成头脑风暴？" -> "可能适用任何技能？" [label="是"];
+    "调用 brainstorming" -> "brainstorming\n↓\nwriting-plans\n↓\nsubagent-driven-\ndevelopment";
+    "brainstorming\n↓\nwriting-plans\n↓\nsubagent-driven-\ndevelopment" -> "子代理强制加载\nTDD 技能";
 }
 ```
 
@@ -98,15 +102,15 @@ digraph skill_flow {
 
 当多个技能都适用时，按以下顺序使用：
 
-1. **首先使用流程类技能**（brainstorming、debugging）— 这些决定如何处理任务
-2. **其次使用实现类技能**（frontend-design、mcp-builder）— 这些指导执行
+1. **首先使用流程类技能**（brainstorming、writing-plans、systematic-debugging）— 这些决定如何处理任务
+2. **其次使用实现类技能**（subagent-driven-development、test-driven-development、dispatching-parallel-agents）— 这些指导执行
 
-"让我们构建 X" → 首先 brainstorming，然后是实现类技能。
-"修复这个 bug" → 首先 debugging，然后是领域特定技能。
+"让我们构建 X" → brainstorming → writing-plans → subagent-driven-development（子代理强制加载 TDD）。
+"修复这个 bug" → systematic-debugging，然后按需使用其他技能。
 
 ## 技能类型
 
-**严格型**（TDD、debugging）：严格遵循。不要为了变通而放弃纪律。
+**严格型**（test-driven-development、systematic-debugging）：严格遵循。不要为了变通而放弃纪律。
 
 **灵活型**（patterns）：根据上下文调整原则。
 
