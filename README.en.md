@@ -42,7 +42,7 @@ The original Superpowers was born when models were weaker — plan files had to 
 | 2️⃣ | **Context waste**: Controller loads entire Spec into memory | **Spec Reference on-demand**: reviewers read only the anchored section |
 | 3️⃣ | **Session-only TodoWrite**, progress lost when session ends | **Persistent plan checkbox updates** (`- [ ]` → `- [x]`) |
 | 4️⃣ | **Controller self-review**, meaningless | **Mandatory independent subagent review**: two-stage gating |
-| 5️⃣ | **New subagent for fixes**, losing context | **SendMessage original implementer**, preserving context |
+| 5️⃣ | **New subagent for fixes**, losing context | **New implementer with original context + issue list**, preserving context |
 | 6️⃣ | **Two execution paths**, double maintenance | **Single execution path**, unified flow |
 | 7️⃣ | Text-only design, no visualization | **Diagram-Driven Design**: ASCII box drawings + Mermaid flowcharts/sequence/state diagrams mandatory |
 | 8️⃣ | TDD is optional, subagents often skip | **Enforced TDD loading**: implementer subagent invokes `Skill("superpowers:test-driven-development")` on startup |
@@ -140,12 +140,12 @@ The original Superpowers was born when models were weaker — plan files had to 
 │  │                                                        │  │
 │  │ 🔍 Stage 1: Dispatch spec-reviewer subagent            │  │
 │  │   → Verify against acceptance criteria + Spec Ref      │  │
-│  │   → Issues? SendMessage original implementer → Re-check│  │
+│  │   → Issues? New implementer (original context + issues) → Re-check│  │
 │  │   → Compliant ✅                                       │  │
 │  │                                                        │  │
 │  │ 🧪 Stage 2: Dispatch code-quality-reviewer subagent    │  │
 │  │   → Check code quality / architecture / tests          │  │
-│  │   → Issues? SendMessage original implementer → Re-check│  │
+│  │   → Issues? New implementer (original context + issues) → Re-check│  │
 │  │   → Pass ✅                                            │  │
 │  │                                                        │  │
 │  │ ✅ TodoWrite done + Edit plan checkbox (- [ ] → - [x]) │  │
