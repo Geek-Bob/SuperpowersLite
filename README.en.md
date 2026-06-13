@@ -16,7 +16,7 @@
 
 ---
 
-> 🎯 **Remove code from plans. Let subagents truly TDD. · Diagram-Driven Design · Mandatory Review Gates**
+> 🎯 **Remove code from plans. Let subagents truly TDD. · Contract-First · Dynamic Layered Parallelism · Mandatory Review Gates**
 
 ---
 
@@ -46,6 +46,8 @@ The original Superpowers was born when models were weaker — plan files had to 
 | 6️⃣ | **Two execution paths**, double maintenance | **Single execution path**, unified flow |
 | 7️⃣ | Text-only design, no visualization | **Diagram-Driven Design**: ASCII box drawings + Mermaid flowcharts/sequence/state diagrams mandatory |
 | 8️⃣ | TDD is optional, subagents often skip | **Enforced TDD loading**: implementer subagent invokes `Skill("superpowers:test-driven-development")` on startup |
+| 9️⃣ | Doc review without context, ineffective | **Dual review**: subagent checks structural quality (completeness/consistency), Controller checks requirement fidelity (omissions/distortions) |
+| 🔟 | **All tasks serial**, inefficient | **Contract-First + Dynamic Layered Parallelism**: interfaces before implementations → auto dependency analysis → same-layer parallel, cross-layer serial |
 
 ### 📋 Original vs Lite: File-by-File
 
@@ -58,9 +60,9 @@ The original Superpowers was born when models were weaker — plan files had to 
 |--------|----------|------|
 | 🚪 User Gate | Suggestive: "Wait for the user's response…" | **Mandatory**: "HARD STOP" |
 | 🎨 Diagram-Driven Design | ❌ None | ✅ ASCII box drawings + Mermaid mandatory |
-| 🐛 Bug Fix | `spec-document-reviewer-prompt.md` orphaned | ✅ Wired into flow: independent review subagent after design doc |
+| 🐛 Bug Fix | `spec-document-reviewer-prompt.md` orphaned | ✅ Dual review: subagent (structural quality) → Controller (requirement fidelity) |
 | 🌐 Language | English | Chinese |
-| 📊 Impact | 🟡 Medium — diagrams + reviewer + translation |
+| 📊 Impact | 🟡 Medium — diagrams + dual review + translation |
 
 #### 2️⃣ writing-plans/SKILL.md (Biggest Change)
 
@@ -70,7 +72,7 @@ The original Superpowers was born when models were weaker — plan files had to 
 | 📄 Content | Full code blocks | Goal + Spec Reference + acceptance criteria |
 | 🔗 Spec Reference | ❌ None | ✅ Precise section anchors |
 | 🚪 User Gate | ❌ None | ✅ Mandatory hard stop |
-| 🐛 Bug Fix | `plan-document-reviewer-prompt.md` orphaned | ✅ Wired into flow: independent review subagent after plan |
+| 🐛 Bug Fix | `plan-document-reviewer-prompt.md` orphaned | ✅ Subagent reviews against design doc (requirement fidelity + structural quality) |
 | 📊 Impact | 🔴 **Massive** — complete rewrite |
 
 #### 3️⃣ subagent-driven-development/SKILL.md
@@ -79,7 +81,8 @@ The original Superpowers was born when models were weaker — plan files had to 
 |--------|----------|------|
 | 👤 Reviewer | spec-reviewer | spec-reviewer (validate against original spec) |
 | 🚫 Controller Role | Could self-review | **Pure coordinator, no review** |
-| 📊 Impact | 🔴 **Massive** — architecture fix |
+| ⚡ Execution Strategy | Serial, one at a time | **Dynamic layered parallelism**: contract-first → DAG layering → parallel within layer, serial across layers |
+| 📊 Impact | 🔴 **Massive** — architecture fix + layered parallelism |
 
 #### 4️⃣ executing-plans/
 
@@ -103,7 +106,8 @@ The original Superpowers was born when models were weaker — plan files had to 
 │      → 🎨 Diagram-Driven Design: ASCII layouts + Mermaid       │
 │        flowcharts/sequence/state diagrams                      │
 │      → Write to docs/superpowers/specs/xxx-design.md         │
-│      → Dispatch independent spec-document-reviewer → Self-review│
+│      → 🔍 Stage 1: Subagent review (structural: completeness/consistency/clarity) │
+│      → 🧠 Stage 2: Controller self-review (requirement fidelity: omissions/distortions) │
 │                                                              │
 │  🛑 USER CONFIRMATION GATE (HARD STOP)                       │
 │  "Please review this design document. Any changes needed?"   │
@@ -117,9 +121,9 @@ The original Superpowers was born when models were weaker — plan files had to 
 │                                                              │
 │  Spec → Break into independently TDD-able tasks              │
 │      → Each task: Goal + Spec Reference + Acceptance Criteria│
-│        + Test Cases + Steps (ordered list)                   │
+│        + Acceptance Criteria + Test Cases + Steps (ordered)   │
 │      → Write to docs/superpowers/plans/xxx.md                │
-│      → Dispatch independent plan-document-reviewer → Self-review│
+│      → 🔍 Subagent review (against design doc: requirement fidelity + structural quality) │
 │                                                              │
 │  🛑 USER CONFIRMATION GATE (HARD STOP)                       │
 │  "Please review this plan. Is the decomposition reasonable?" │
@@ -132,23 +136,27 @@ The original Superpowers was born when models were weaker — plan files had to 
 │           ③ subagent-driven-development 🤖 (Execution)       │
 │                                                              │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │ Per Task:                                              │  │
+│  │ Phase 0: Read execution layers (pre-computed by        │  │
+│  │          writing-plans via DAG analysis)               │  │
 │  │                                                        │  │
-│  │ 🔴🔴🔴 Dispatch implementer (TDD: Red→Green→Refactor)  │  │
-│  │   ⚡ Enforced TDD: Red→Green→Refactor cycle               │  │
-│  │   → Self-review → Commit → Report DONE                 │  │
+│  │ Phase 1: Execute layer by layer, parallel within layer │  │
 │  │                                                        │  │
-│  │ 🔍 Stage 1: Dispatch spec-reviewer subagent            │  │
-│  │   → Verify against acceptance criteria + Spec Ref      │  │
-│  │   → Issues? New implementer (original context + issues) → Re-check│  │
-│  │   → Compliant ✅                                       │  │
+│  │   Layer 0 ──→ all passed                               │  │
+│  │     │                                                  │  │
+│  │     ▼                                                  │  │
+│  │   Layer 1: Task A ─┐                                   │  │
+│  │   Layer 1: Task B ─┤ dispatched together               │  │
+│  │   Layer 1: Task C ─┘ (different files, shared contract) │  │
+│  │     │                                                  │  │
+│  │     ▼ all passed                                       │  │
+│  │   Layer 2: Task D ─┐                                   │  │
+│  │   Layer 2: Task E ─┤ dispatched together               │  │
+│  │     │                                                  │  │
+│  │     ▼ ...until all layers done                          │  │
 │  │                                                        │  │
-│  │ 🧪 Stage 2: Controller calls requesting-code-review      │  │
-│  │   → Get BASE_SHA/HEAD_SHA → Dispatch code-reviewer       │  │
-│  │   → Issues? New implementer (original context + issues) → Re-check│  │
-│  │   → Pass ✅                                            │  │
-│  │                                                        │  │
-│  │ ✅ TodoWrite done + Edit plan checkbox (- [ ] → - [x]) │  │
+│  │ Per Task flow unchanged:                               │  │
+│  │   Implement → spec-review → code-review → mark done    │  │
+│  │   Failure → new implementer fix → re-review             │  │
 │  └───────────────────────────────────────────────────────┘  │
 └──────────────────────────┬───────────────────────────────────┘
                            │ All tasks complete
@@ -171,12 +179,12 @@ The original Superpowers was born when models were weaker — plan files had to 
 
 | File | Original | Lite | Impact |
 |------|----------|------|:------:|
-| `brainstorming/SKILL.md` | 🌐 English, suggestive gate | 🇨🇳 Chinese, mandatory gate + diagram-driven design | 🟡 Medium |
-| `brainstorming/diagram-driven-design.md` | — | 🆕 **New**: ASCII box + Mermaid diagram specs | 🟡 Medium |
-| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, independent review subagent template | 🟡 Medium |
-| `writing-plans/SKILL.md` | 🌐 English, code-clone gen. | 🇨🇳 Chinese, light task decomp. + plan review subagent | 🔴 **Massive** |
-| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, independent review subagent template | 🟡 Medium |
-| `subagent-driven-dev/SKILL.md` | 🌐 English, self-review OK | 🇨🇳 Chinese, mandatory review | 🔴 **Massive** |
+| `brainstorming/SKILL.md` | 🌐 English, suggestive gate | 🇨🇳 Chinese, mandatory gate + diagram-driven + contract & interfaces + dual review | 🟡 Medium |
+| `brainstorming/diagram-driven-design.md` | — | 🆕 **New**: ASCII box + Mermaid diagram specs (incl. classDiagram) | 🟡 Medium |
+| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, structural quality review template (completeness/consistency/clarity) | 🟡 Medium |
+| `writing-plans/SKILL.md` | 🌐 English, code-clone gen. | 🇨🇳 Chinese, task decomp. + Produces/Consumes + auto DAG layering + subagent full review | 🔴 **Massive** |
+| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, review template (incl. Produces/Consumes reference integrity check) | 🟡 Medium |
+| `subagent-driven-dev/SKILL.md` | 🌐 English, self-review OK | 🇨🇳 Chinese, mandatory review + layered parallel execution | 🔴 **Massive** |
 | `spec-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `spec-reviewer` + Spec Ref | 🟡 Medium |
 | `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD loading | 🟡 Medium |
 | `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese, triggered in Stage 2 per task | 🔵 Small |

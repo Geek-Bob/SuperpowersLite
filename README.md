@@ -16,7 +16,7 @@
 
 ---
 
-> 🎯 **干掉计划中的代码，让子代理真正 TDD · 图表驱动设计 · 强制审查门控**
+> 🎯 **干掉计划中的代码，让子代理真正 TDD · 契约优先 · 动态分层并行 · 强制审查门控**
 
 ---
 
@@ -46,6 +46,8 @@
 | 6️⃣ | **两套执行路径**，维护成本翻倍 | **单一执行路径**，统一流程 |
 | 7️⃣ | 设计纯文本，缺乏可视化 | **图表驱动设计**：ASCII 框图 + Mermaid 流程图/时序图/状态图强制产出 |
 | 8️⃣ | TDD 可选，子代理经常跳过 | **强制加载 TDD 技能**：实现者子代理启动即调用 `Skill("superpowers:test-driven-development")` |
+| 9️⃣ | 设计/计划文档审查无上下文，无效审查 | **双审查分工**：子代理审结构质量（完整性/一致性），Controller 审需求一致性（遗漏/曲解） |
+| 🔟 | **所有任务串行执行**，效率低 | **契约优先 + 动态分层并行**：接口先于实现定义 → 依赖自动分析 → 同层并行、跨层串行 |
 
 ### 📋 原始 vs 改造：逐文件对比
 
@@ -58,9 +60,9 @@
 |--------|------|--------|
 | 🚪 用户确认门控 | 建议性："Wait for the user's response…" | **强制性**："MANDATORY hard stop" |
 | 🎨 图表驱动设计 | ❌ 不存在 | ✅ ASCII 框图 + Mermaid 强制产出 |
-| 🐛 BUG 修复 | `spec-document-reviewer-prompt.md` 是孤儿文件 | ✅ 设计文档写完后强制派发独立审查子代理 |
+| 🔍 双审查机制 | 自审 + 孤儿审查文件 | ✅ 子代理审结构（完整性/一致性/清晰度）→ Controller 审需求一致性（遗漏/曲解） |
 | 🌐 语言 | 全英文 | 全中文 |
-| 📊 改动程度 | 🟡 中 — 图表驱动设计 + 审查子代理 + 中文化 |
+| 📊 改动程度 | 🟡 中 — 图表驱动设计 + 双审查 + 中文化 |
 
 #### 2️⃣ writing-plans/SKILL.md（改动最大）
 
@@ -70,7 +72,7 @@
 | 📄 计划内容 | 完整代码块 | Goal + Spec Reference + 验收标准 |
 | 🔗 Spec Reference | ❌ 不存在 | ✅ 精确章节锚点 |
 | 🚪 用户确认门控 | ❌ 不存在 | ✅ 强制阻断 |
-| 🐛 BUG 修复 | `plan-document-reviewer-prompt.md` 是孤儿文件 | ✅ 计划写完后强制派发独立审查子代理 |
+| 🐛 BUG 修复 | `plan-document-reviewer-prompt.md` 是孤儿文件 | ✅ 计划写完后子代理对照设计文档全面审查（需求一致性 + 结构质量） |
 | 📊 改动程度 | 🔴 **极大** — 完全重写 |
 
 #### 3️⃣ subagent-driven-development/SKILL.md
@@ -79,7 +81,8 @@
 |--------|------|--------|
 | 👤 审查员 | spec-reviewer | spec-reviewer（对照原始规格验证） |
 | 🚫 Controller 角色 | 可自我审查 | **纯协调者，禁止审查** |
-| 📊 改动程度 | 🔴 **极大** — 修复架构缺陷 |
+| ⚡ 执行策略 | 串行逐个执行 | **动态分层并行**：契约优先 → DAG 分层 → 同层并行、跨层串行 |
+| 📊 改动程度 | 🔴 **极大** — 修复架构缺陷 + 分层并行 |
 
 #### 4️⃣ executing-plans/
 
@@ -102,7 +105,8 @@
 │      → 分段呈现设计 → 用户逐段确认                              │
 │      → 🎨 图表驱动设计：ASCII 布局原型 + Mermaid 流程图/时序图/状态图 │
 │      → 写入 docs/superpowers/specs/xxx-design.md               │
-│      → 派发独立 spec-document-reviewer 子代理审查 → 自审          │
+│      → 🔍 阶段一：子代理审查（结构质量：完整性/一致性/清晰度）   │
+│      → 🧠 阶段二：Controller 自审（需求一致性：遗漏/曲解检查）   │
 │                                                              │
 │  🛑 用户确认门控（强制阻断）                                   │
 │  "请审阅这份设计文档，是否有需要修改的地方？"                    │
@@ -116,9 +120,9 @@
 │                                                              │
 │  Spec → 拆解为独立可 TDD 的任务                                │
 │      → 每个任务：Goal + Spec Reference(精确锚点)                │
-│        + 验收标准(checkbox) + 测试用例 + 步骤(有序列表)          │
+│        + 验收标准(checkbox) + 步骤(有序列表)          │
 │      → 写入 docs/superpowers/plans/xxx.md                      │
-│      → 派发独立 plan-document-reviewer 子代理审查 → 自审          │
+│      → 🔍 子代理审查（对照设计文档：需求一致性 + 结构质量）     │
 │                                                              │
 │  🛑 用户确认门控（强制阻断）                                   │
 │  "请审阅这份实施计划。任务拆分是否合理？"                        │
@@ -131,23 +135,26 @@
 │           ③ subagent-driven-development 🤖（子代理执行）       │
 │                                                              │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │ Per Task:                                              │  │
+│  │ 阶段 0：读「执行分层」表（writing-plans 已自动计算）     │  │
 │  │                                                        │  │
-│  │ 🔴🔴🔴 派发实现者子代理（TDD: Red→Green→Refactor）      │  │
-│  │   ⚡ 强制加载 TDD 技能：Red→Green→Refactor 循环              │  │
-│  │   → 自审 → 提交 → 报告 DONE                             │  │
+│  │ 阶段 1：逐层并行执行                                    │  │
 │  │                                                        │  │
-│  │ 🔍 第一阶段：派发 spec-reviewer 子代理                   │  │
-│  │   → 对照验收标准 + Spec Reference（按需读取）验证         │  │
-│  │   → 有问题 → 派新实现者修复（附带原始上下文 + 问题清单）→ 重新审查 │  │
-│  │   → 合规 ✅                                             │  │
+│  │   Layer 0 ──→ 全部通过                                  │  │
+│  │     │                                                  │  │
+│  │     ▼                                                  │  │
+│  │   Layer 1: Task A ─┐                                   │  │
+│  │   Layer 1: Task B ─┤ 同时派发（不同文件 + 共享契约）     │  │
+│  │   Layer 1: Task C ─┘                                   │  │
+│  │     │                                                  │  │
+│  │     ▼ 全部通过                                          │  │
+│  │   Layer 2: Task D ─┐                                   │  │
+│  │   Layer 2: Task E ─┤ 同时派发                           │  │
+│  │     │                                                  │  │
+│  │     ▼ ...直到所有层完成                                  │  │
 │  │                                                        │  │
-│  │ 🧪 第二阶段：Controller 调用 requesting-code-review     │  │
-│  │   → 获取 BASE_SHA/HEAD_SHA → 派 code-reviewer 子代理     │  │
-│  │   → 有问题 → 派新实现者修复（附带原始上下文 + 问题清单）→ 重新审查 │  │
-│  │   → 通过 ✅                                             │  │
-│  │                                                        │  │
-│  │ ✅ TodoWrite 完成 + Edit 计划 checkbox（- [ ] → - [x]）  │  │
+│  │ Per Task 流程不变：                                     │  │
+│  │   实现 → spec-review → code-review → 标记完成           │  │
+│  │   失败 → 派新实现者修复 → 重新审查（不影响同层其他任务）  │  │
 │  └───────────────────────────────────────────────────────┘  │
 └──────────────────────────┬───────────────────────────────────┘
                            │ 所有任务完成
@@ -171,12 +178,12 @@
 
 | 文件 | 原始 | 改造后 | 改动程度 |
 |------|------|--------|:--------:|
-| `brainstorming/SKILL.md` | 🌐 英文，建议性门控 | 🇨🇳 中文，强制阻断 + 图表驱动设计 | 🟡 中 |
-| `brainstorming/diagram-driven-design.md` | — | 🆕 **新增**：ASCII 框图 + Mermaid 图表规范 | 🟡 中 |
-| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 中文，独立审查子代理模板 | 🟡 中 |
-| `writing-plans/SKILL.md` | 🌐 英文，代码副本生成器 | 🇨🇳 中文，轻量任务分解 + 计划审查子代理 | 🔴 **极大** |
-| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 中文，独立审查子代理模板 | 🟡 中 |
-| `subagent-driven-dev/SKILL.md` | 🌐 英文，可自我审查 | 🇨🇳 中文，强制派发审查 | 🔴 **极大** |
+| `brainstorming/SKILL.md` | 🌐 英文，建议性门控 | 🇨🇳 中文，强制阻断 + 图表驱动 + 契约与接口 + 双审查 | 🟡 中 |
+| `brainstorming/diagram-driven-design.md` | — | 🆕 **新增**：ASCII 框图 + Mermaid 图表规范（含 classDiagram） | 🟡 中 |
+| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 中文，结构质量审查子代理模板（完整性/一致性/清晰度） | 🟡 中 |
+| `writing-plans/SKILL.md` | 🌐 英文，代码副本生成器 | 🇨🇳 中文，任务分解 + Produces/Consumes + 自动 DAG 分层 + 子代理全面审查 | 🔴 **极大** |
+| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 中文，审查子代理模板（含 Produces/Consumes 引用完整性检查） | 🟡 中 |
+| `subagent-driven-dev/SKILL.md` | 🌐 英文，可自我审查 | 🇨🇳 中文，强制派发审查 + 分层并行执行 | 🔴 **极大** |
 | `spec-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `spec-reviewer` + Spec Reference | 🟡 中 |
 | `implementer-prompt.md` | 🌐 英文，TDD 可选 | 🇨🇳 中文，强制加载 TDD 技能 | 🟡 中 |
 | `requesting-code-review/SKILL.md` | 🌐 英文 | 🇨🇳 中文，Per Task 内第二阶段触发 | 🔵 小 |

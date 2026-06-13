@@ -18,6 +18,7 @@ ASCII 框图 + Mermaid 图表的语法规范和示例。
 | 🖥️ UI | ASCII 布局原型 | flowchart + stateDiagram |
 | ⚙️ 后端/API | ASCII 架构图 | sequenceDiagram + erDiagram |
 | 🔗 全栈 | ASCII 布局 + ASCII 架构 | flowchart + sequenceDiagram |
+| 📐 契约层（所有项目） | — | classDiagram（类型 + 接口关系） |
 
 ## ASCII 框图
 
@@ -141,22 +142,33 @@ stateDiagram-v2
     成功态 --> [*]
 ```
 
-### erDiagram
+### classDiagram
 
-实体、字段、关系。
+用于表达契约层：类型定义和模块接口关系。每个项目的设计文档必须包含此图。
 
 ```mermaid
-erDiagram
-    User ||--o{ Order : places
-    User {
-        int id PK
-        string username
-        string email
+classDiagram
+    class IUser {
+        +string id
+        +string name
+        +string email
+        +string role
     }
-    Order {
-        int id PK
-        int user_id FK
-        decimal amount
-        string status
+    class Result~T~ {
+        +boolean success
+        +T data
+        +string error
     }
+    class IUserRepository {
+        +findById(id: string) Promise~IUser~
+        +create(data: CreateUserDTO) Promise~Result~IUser~~
+    }
+    class IUserService {
+        +getUser(id: string) Promise~Result~IUser~~
+        +createUser(data) Promise~Result~IUser~~
+    }
+    IUserRepository ..> IUser : 返回
+    IUserService ..> Result : 返回
+    IUserService ..> IUser : 返回
+    IUserService ..> IUserRepository : 依赖
 ```
