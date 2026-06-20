@@ -136,14 +136,12 @@
   │  └────────────────────────────────────────────────────────────────────┘         │
   │      │                                                                           │
   │      ▼                                                                           │
-  │  ┌─ Phase 1: Execute Layer by Layer, Parallel Within Layer (No Per-Task Review)│  │
+  │  ┌─ Phase 1: Execute Layer by Layer, Parallel Within Layer ─────────┐          │
   │  │                                                                    │          │
-  │  │  🆕 Why no per-task review subagent?                                │          │
+  │  │  🆕 Task-level quality safety net:                                  │          │
   │  │  ┌──────────────────────────────────────────────────────────┐    │          │
-  │  │  │ Single-task spec-reviewer lacks full requirement map       │    │          │
-  │  │  │ Single-task code-reviewer sees isolated diff = false alarms │    │          │
-  │  │  │ Global perspective comes from overall review, not per-task │    │          │
-  │  │  │ Task-level quality from: ①contracts ②TDD ③self-review ④overall│  │          │
+  │  │  │ ①Contracts ②Enforced TDD ③Self-review ④Overall dual review │    │          │
+  │  │  │ Implementer self-reviews and marks done — no per-task review│    │          │
   │  │  └──────────────────────────────────────────────────────────┘    │          │
   │  │                                                                    │          │
   │  │  Layer 0 ──────────────────── all done ────────────────────────▶   │          │
@@ -165,7 +163,7 @@
   │  │  🚫 File conflicts resolved by layer table: same-layer = different files│       │
   │  └────────────────────────────────────────────────────────────────────┘          │
   │                                                                                  │
-  │  ┌─ Per-Task Flow (No Independent Review) ──────────────────────────┐          │
+  │  ┌─ Per-Task Flow ────────────────────────────────────────────────┐          │
   │  │                                                                    │          │
   │  │  ┌─── Dispatch Implementer (new subagent) ────────────────────┐   │          │
   │  │  │                                                              │   │          │
@@ -192,9 +190,9 @@
   │                                                                                  │
   │  ┌─ Phase 2: 🆕 Overall Dual Review Gate (After All Tasks Complete) ─┐          │
   │  │                                                                    │          │
-  │  │  🆕 Core insight: global perspective from overall review, not per-task│       │
+  │  │  🆕 Overall dual review = full requirement map + all implementation │       │
   │  │  ┌──────────────────────────────────────────────────────────┐    │          │
-  │  │  │ Subagent sees full requirement map + all code = accurate + cheap│  │          │
+  │  │  │ Accurate (global perspective) and cheap (one pass, two gates)│   │          │
   │  │  └──────────────────────────────────────────────────────────┘    │          │
   │  │                                                                    │          │
   │  │  ┌─ Overall spec-review (Gate 1: Spec Compliance) ────────┐      │          │
@@ -256,14 +254,14 @@ L0 (Contracts) → L1 (Data layer, parallel) → L2 (Business layer, parallel) �
   Same-layer parallel ⚡                    Cross-layer serial 🔗
 ```
 
-### ③ Enforced TDD + 🆕 Overall Dual Review Gates (Global Perspective)
+### ③ Enforced TDD + Overall Dual Review Gates (Global Perspective)
 
 Implementer subagents **force-load the TDD skill** on startup, strictly following Red → Green → Refactor. **After all tasks complete**, an **overall dual review gate** runs: overall spec-review (requirement coverage + inter-task consistency) → overall code-review (code quality + architecture). Any review fails → new fix subagent → re-run that review (loop until pass). **Every reviewer is a fresh subagent** — fresh eyes, zero bias.
 
-**🆕 Key insight: global perspective comes from overall review, not per-task repetition.** Per-task review = blind men touching an elephant, isolated diffs cause false alarms, token waste × N. Overall review = sees full requirement map + all code, more accurate AND cheaper.
+**Overall dual review = full requirement map + all implementation code.** Accurate (global perspective) and cheap (one pass, two gates).
 
 ```
-Phase 1: All tasks implement → mark done (zero per-task review)
+Phase 1: All tasks implement → mark done
    │
    ▼
 Phase 2: Overall Dual Review Gate
@@ -330,8 +328,8 @@ Removed the official **executing-plans** skill (two execution paths → single e
 | `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, structural quality review template (completeness/consistency/clarity) | 🟡 Medium |
 | `writing-plans/SKILL.md` | 🌐 English, code-clone generator | 🇨🇳 Chinese, task decomposition + Produces/Consumes + auto DAG layering + subagent full review | 🔴 **Massive** |
 | `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, review template (incl. Produces/Consumes reference integrity check) | 🟡 Medium |
-| `subagent-driven-dev/SKILL.md` | 🌐 English, self-review OK | 🇨🇳 Chinese, **overall dual review gates** (zero per-task review) + layered parallel execution | 🔴 **Massive** |
-| `spec-reviewer-prompt.md` | 🌐 English, per-task local review | 🇨🇳 Chinese, **overall** review template (on-demand full-code reads, self-locate features) | 🟡 Medium |
+| `subagent-driven-dev/SKILL.md` | 🌐 English | 🇨🇳 Chinese, overall dual review gates + layered parallel execution | 🔴 **Massive** |
+| `spec-reviewer-prompt.md` | 🌐 English | 🇨🇳 Chinese, overall review template (on-demand full-code reads, self-locate features) | 🟡 Medium |
 | `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD + contracts + self-review hint | 🟡 Medium |
 | `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese, **overall code-review** trigger (after all tasks complete) | 🔵 Small |
 | `code-reviewer.md` | 🌐 English | 🇨🇳 Chinese, added architecture/file responsibility checks | 🟡 Medium |

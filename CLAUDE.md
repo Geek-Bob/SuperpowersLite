@@ -21,7 +21,7 @@ skills/                          # 所有技能文件（核心产出）
 │   ├── SKILL.md                 #   全中文 + 任务分解 + Produces/Consumes + 自动 DAG 分层 + 子代理全面审查
 │   └── plan-document-reviewer-prompt.md  # 🆕 计划审查模板（含 Produces/Consumes 引用完整性检查）
 ├── subagent-driven-development/ # 🔴 重度改造：执行计划
-│   ├── SKILL.md                 #   全中文 + 整体双审查门控（任务级零独立审查）+ 分层并行 + 进度持久化（Edit → TodoWrite）
+│   ├── SKILL.md                 #   全中文 + 整体双审查门控 + 分层并行 + 进度持久化（Edit → TodoWrite）
 │   ├── implementer-prompt.md    #   全中文 + 强制加载 TDD 技能 + 契约约束 + 自审提示
 │   └── spec-reviewer-prompt.md  #   全中文 + 整体审查模板（按需读取全量代码，自主定位）
 ├── test-driven-development/     # 🟡 TDD 技能（来自官方，部分中文化）
@@ -68,7 +68,7 @@ brainstorming → writing-plans → subagent-driven-development
 - Controller：需求一致性（遗漏/曲解）
 
 ### 5. 进度持久化（subagent-driven-development）
-每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TodoWrite 标记。文件是唯一持久化真相源。**任务级零独立审查**：每任务实现即标记，所有任务完成后进入整体双审查门控（整体 spec-review → 整体 code-review）。
+每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TodoWrite 标记。文件是唯一持久化真相源。**所有任务完成后**进入整体双审查门控（整体 spec-review → 整体 code-review）。
 
 ### 6. 已删除 executing-plans
 官方有两条执行路径（executing-plans + subagent-driven-development），Lite 统一为 subagent-driven-development 单一执行路径。
@@ -79,7 +79,7 @@ brainstorming → writing-plans → subagent-driven-development
 |------|:--------:|------|---------|
 | brainstorming | 🟡 中 | 🇨🇳 | 强制阻断 + 图表驱动 + 契约与接口 + 双审查 |
 | writing-plans | 🔴 极大 | 🇨🇳 | 完全重写：代码副本 → 任务分解 + Produces/Consumes + DAG 分层 |
-| subagent-driven-development | 🔴 极大 | 🇨🇳 | 整体双审查门控（任务级零独立审查）+ 分层并行执行 |
+| subagent-driven-development | 🔴 极大 | 🇨🇳 | 整体双审查门控 + 分层并行执行 |
 | requesting-code-review | 🔵 小 | 🇨🇳 | 中文化 |
 | executing-plans | ⚫ 删除 | — | 统一执行路径 |
 
