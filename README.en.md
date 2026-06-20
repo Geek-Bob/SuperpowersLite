@@ -136,29 +136,36 @@
   │  └────────────────────────────────────────────────────────────────────┘         │
   │      │                                                                           │
   │      ▼                                                                           │
-  │  ┌─ Phase 1: Execute Layer by Layer, Parallel Within Layer ──────────┐          │
+  │  ┌─ Phase 1: Execute Layer by Layer, Parallel Within Layer (No Per-Task Review)│  │
   │  │                                                                    │          │
-  │  │  Layer 0 ──────────────────── all passed ─────────────────────▶    │          │
+  │  │  🆕 Why no per-task review subagent?                                │          │
+  │  │  ┌──────────────────────────────────────────────────────────┐    │          │
+  │  │  │ Single-task spec-reviewer lacks full requirement map       │    │          │
+  │  │  │ Single-task code-reviewer sees isolated diff = false alarms │    │          │
+  │  │  │ Global perspective comes from overall review, not per-task │    │          │
+  │  │  │ Task-level quality from: ①contracts ②TDD ③self-review ④overall│  │          │
+  │  │  └──────────────────────────────────────────────────────────┘    │          │
+  │  │                                                                    │          │
+  │  │  Layer 0 ──────────────────── all done ────────────────────────▶   │          │
   │  │    │                                                               │          │
   │  │    ▼                                                               │          │
-  │  │  Layer 1 ┌─ Task A ─ Impl(TDD) → spec-review → code-review → [x] ─┐│          │
-  │  │          ├─ Task B ─ Impl(TDD) → spec-review → code-review → [x] ─┤│          │
-  │  │          └─ Task C ─ Impl(TDD) → spec-review → code-review → [x] ─┘│          │
+  │  │  Layer 1 ┌─ Task A ─ Impl(TDD) → self-review → commit → [x] ─┐    │          │
+  │  │          ├─ Task B ─ Impl(TDD) → self-review → commit → [x] ─┤    │          │
+  │  │          └─ Task C ─ Impl(TDD) → self-review → commit → [x] ─┘    │          │
   │  │    │     ↑ Dispatched together (different files + shared contract) ↑│          │
-  │  │    │     ↑ Each proceeds independently — A in code-review while B in spec-review│
-  │  │    │     ↑ One fails → new implementer fix → re-review (others unaffected)│    │
+  │  │    │     ↑ One fails → new implementer fix (others continue)       │          │
   │  │    │                                                               │          │
-  │  │    ▼ all passed                                                     │          │
-  │  │  Layer 2 ┌─ Task D ─ Impl(TDD) → spec-review → code-review → [x] ─┐│          │
-  │  │          └─ Task E ─ Impl(TDD) → spec-review → code-review → [x] ─┘│          │
+  │  │    ▼ all done                                                      │          │
+  │  │  Layer 2 ┌─ Task D ─ Impl(TDD) → self-review → commit → [x] ─┐    │          │
+  │  │          └─ Task E ─ Impl(TDD) → self-review → commit → [x] ─┘    │          │
   │  │    │                                                               │          │
   │  │    ▼ ...until all layers done                                       │          │
   │  │                                                                    │          │
-  │  │  🚫 Cross-layer must be serial: upper layer all passed → next layer  │          │
+  │  │  🚫 Cross-layer must be serial: upper layer all done → next layer   │          │
   │  │  🚫 File conflicts resolved by layer table: same-layer = different files│       │
   │  └────────────────────────────────────────────────────────────────────┘          │
   │                                                                                  │
-  │  ┌─ Per Task Detailed Flow ─────────────────────────────────────────┐          │
+  │  ┌─ Per-Task Flow (No Independent Review) ──────────────────────────┐          │
   │  │                                                                    │          │
   │  │  ┌─── Dispatch Implementer (new subagent) ────────────────────┐   │          │
   │  │  │                                                              │   │          │
@@ -169,35 +176,8 @@
   │  │  │  🆕 Contract constraint: only use interfaces/types in Consumes│   │          │
   │  │  │     Need undeclared type? → Report NEEDS_CONTEXT, don't invent│   │          │
   │  │  │                                                              │   │          │
-  │  │  │  Commit + self-review (completeness/quality/discipline/tests) │   │          │
+  │  │  │  Commit + 4-axis self-review (completeness/quality/discipline/tests)│   │          │
   │  │  │  Report: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT  │   │          │
-  │  │  └──────────────────────────────────────────────────────────────┘   │          │
-  │  │    │                                                               │          │
-  │  │    ▼                                                               │          │
-  │  │  ┌─── Stage 1: spec-review (Spec Compliance) ──────────────────┐   │          │
-  │  │  │                                                              │   │          │
-  │  │  │  Dispatch spec-reviewer (new subagent, fresh eyes, no bias)  │   │          │
-  │  │  │  🆕 Spec Reference on-demand (reads only anchored section)   │   │          │
-  │  │  │  Check: missing requirements? extra features? misunderstood?  │   │          │
-  │  │  │                                                              │   │          │
-  │  │  │  ❌ Fail:                                                    │   │          │
-  │  │  │     🆕 New implementer fix (with original context + issue list)│  │          │
-  │  │  │     → New spec-reviewer re-review (loop until pass)          │   │          │
-  │  │  │  ✅ Pass → Enter Stage 2                                      │   │          │
-  │  │  └──────────────────────────────────────────────────────────────┘   │          │
-  │  │    │                                                               │          │
-  │  │    ▼                                                               │          │
-  │  │  ┌─── Stage 2: code-review (Code Quality) ─────────────────────┐   │          │
-  │  │  │                                                              │   │          │
-  │  │  │  Controller calls Skill("superpowers:requesting-code-review")│   │          │
-  │  │  │  Dispatch code-reviewer (new subagent, BASE_SHA ~ HEAD_SHA)  │   │          │
-  │  │  │  🆕 Added architecture checks: file responsibility clarity,  │   │          │
-  │  │  │     unit testability, structure compliance, file bloat check  │   │          │
-  │  │  │                                                              │   │          │
-  │  │  │  ❌ Fail:                                                    │   │          │
-  │  │  │     🆕 New implementer fix (with original context + issue list)│  │          │
-  │  │  │     → Re-invoke requesting-code-review (loop until pass)     │   │          │
-  │  │  │  ✅ Pass → Mark complete                                      │   │          │
   │  │  └──────────────────────────────────────────────────────────────┘   │          │
   │  │    │                                                               │          │
   │  │    ▼                                                               │          │
@@ -210,21 +190,47 @@
   │  │  └────────────────────────────────────────────────────────────┘   │          │
   │  └────────────────────────────────────────────────────────────────────┘          │
   │                                                                                  │
+  │  ┌─ Phase 2: 🆕 Overall Dual Review Gate (After All Tasks Complete) ─┐          │
+  │  │                                                                    │          │
+  │  │  🆕 Core insight: global perspective from overall review, not per-task│       │
+  │  │  ┌──────────────────────────────────────────────────────────┐    │          │
+  │  │  │ Subagent sees full requirement map + all code = accurate + cheap│  │          │
+  │  │  └──────────────────────────────────────────────────────────┘    │          │
+  │  │                                                                    │          │
+  │  │  ┌─ Overall spec-review (Gate 1: Spec Compliance) ────────┐      │          │
+  │  │  │  Dispatch overall spec-reviewer (new subagent)              │      │          │
+  │  │  │  Input: SPEC + Plan task list + all code (on-demand reads)  │      │          │
+  │  │  │  Check: coverage / inter-task consistency / scope creep / misinterpret│  │          │
+  │  │  │       │                                                │      │          │
+  │  │  │       ├─ ❌ → New implementer (with review + Task assignment) │      │          │
+  │  │  │       │      → Re-run overall spec-review (loop until pass) │      │          │
+  │  │  │       ▼                                                │      │          │
+  │  │  │     ✅                                                │      │          │
+  │  │  └────────────────────────────────────────────────────────┘      │          │
+  │  │  │                                                                │          │
+  │  │  ┌─ Overall code-review (Gate 2: Code Quality = requesting-code-review)┐│          │
+  │  │  │  Controller calls Skill("superpowers:requesting-code-review")  ││          │
+  │  │  │  Dispatch code-reviewer (new subagent, BASE_SHA ~ HEAD_SHA full diff)││          │
+  │  │  │  🆕 Added architecture checks: file responsibility clarity,  ││          │
+  │  │  │     unit testability, structure compliance, file bloat check  ││          │
+  │  │  │       │                                                │      │          │
+  │  │  │       ├─ ❌ → New implementer (with review + Task assignment) │      │          │
+  │  │  │       │      → Re-run overall code-review (loop until pass)  │      │          │
+  │  │  │       ▼                                                │      │          │
+  │  │  │     ✅                                                │      │          │
+  │  │  └────────────────────────────────────────────────────────┘      │          │
+  │  └────────────────────────────────────────────────────────────────────┘          │
+  │                                                                                  │
   │  🚫 Absolutely Forbidden                                                           │
   │  ┌────────────────────────────────────────────────────────────────────┐         │
-  │  │ Controller self-review · Controller fixes code · Skip any review    │         │
-  │  │ Cross-layer parallel · Same-layer serial · Fix without context      │         │
-  │  │ TodoWrite without file update · Proceed with unresolved issues      │         │
+  │  │ Controller self-review · Controller fixes code · Per-task independent review│
+  │  │ Skip any overall gate · Cross-layer parallel · Same-layer serial · Fix without context│
+  │  │ TodoWrite without file update · spec ❌ still enter code · code ❌ still mark done│
   │  └────────────────────────────────────────────────────────────────────┘         │
   └──────┬───────────────────────────────────────────────────────────────────────────┘
-         │ All tasks complete
+         │ Both gates passed
          ▼
-  ┌─ ④ requesting-code-review 👀 (Final Review) ────────────────────────────────────┐
-  │  Dispatch code-reviewer subagent → BASE_SHA ~ HEAD_SHA full diff review → Fix → Pass│
-  └──────┬──────────────────────────────────────────────────────────────────────────┘
-         │
-         ▼
-  ┌─ ⑤ finishing-a-development-branch 🏁 (Wrap-up) ─────────────────────────────────┐
+  ┌─ ④ finishing-a-development-branch 🏁 (Wrap-up) ─────────────────────────────────┐
   │  Verify → Merge → Clean up                                                         │
   └──────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -250,14 +256,26 @@ L0 (Contracts) → L1 (Data layer, parallel) → L2 (Business layer, parallel) �
   Same-layer parallel ⚡                    Cross-layer serial 🔗
 ```
 
-### ③ Enforced TDD + Dual Review Gates
+### ③ Enforced TDD + 🆕 Overall Dual Review Gates (Global Perspective)
 
-Implementer subagents **force-load the TDD skill** on startup, strictly following Red → Green → Refactor. Every task passes through **two mandatory review gates**: spec-review (spec compliance: missing? extra? misunderstood?) → code-review (code quality: architecture? tests? security?). Any gate fails → loop fix until pass. **Every reviewer is a fresh subagent** — fresh eyes, zero bias.
+Implementer subagents **force-load the TDD skill** on startup, strictly following Red → Green → Refactor. **After all tasks complete**, an **overall dual review gate** runs: overall spec-review (requirement coverage + inter-task consistency) → overall code-review (code quality + architecture). Any review fails → new fix subagent → re-run that review (loop until pass). **Every reviewer is a fresh subagent** — fresh eyes, zero bias.
+
+**🆕 Key insight: global perspective comes from overall review, not per-task repetition.** Per-task review = blind men touching an elephant, isolated diffs cause false alarms, token waste × N. Overall review = sees full requirement map + all code, more accurate AND cheaper.
 
 ```
-Implement(TDD) → spec-review → code-review → mark done
-   ❌               ❌            ❌
-   └─ fix ────→ re-review ──→ re-review (loop)
+Phase 1: All tasks implement → mark done (zero per-task review)
+   │
+   ▼
+Phase 2: Overall Dual Review Gate
+   ┌─ Overall spec-review ─┐
+   │ Coverage + inter-task  │ → ❌ → new fix subagent → re-run overall spec-review
+   │ consistency            │
+   └────────┬──────────────┘
+            ▼ ✅
+   ┌─ Overall code-review (= requesting-code-review) ─┐
+   │ Full diff quality review + architecture checks    │ → ❌ → new fix subagent → re-run overall code-review
+   └────────┬─────────────────────────────────────────┘
+            ▼ ✅ → finishing-a-development-branch
 ```
 
 ### ④ Persistent Progress + Context Preservation
@@ -294,7 +312,7 @@ Removed the official **executing-plans** skill (two execution paths → single e
 | ⚡ | All tasks serial | DAG layered: same-layer parallel, cross-layer serial |
 | 🔗 | No contract mechanism, interfaces written ad-hoc | Contracts & Interfaces chapter mandatory, all implementers share one API |
 | 🧪 | TDD optional, subagents often skip | Enforced TDD loading, Red → Green → Refactor |
-| 👀 | Controller self-reviews | Mandatory independent subagent: spec-review + code-review dual gates |
+| 👀 | Controller self-reviews | **Overall dual review gates** (spec + code), subagent has full global perspective, more accurate findings |
 | 💾 | TodoWrite only, progress lost on session end | Edit plan file checkbox in real-time, file is persistent source of truth |
 | 🔧 | Fixes lose context | New implementer + original task context + review issue list |
 | 📋 | Design/plan reviews ineffective (orphan files) | Dual review + cross-reference review, every review file is called in workflow |
@@ -312,10 +330,10 @@ Removed the official **executing-plans** skill (two execution paths → single e
 | `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, structural quality review template (completeness/consistency/clarity) | 🟡 Medium |
 | `writing-plans/SKILL.md` | 🌐 English, code-clone generator | 🇨🇳 Chinese, task decomposition + Produces/Consumes + auto DAG layering + subagent full review | 🔴 **Massive** |
 | `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, review template (incl. Produces/Consumes reference integrity check) | 🟡 Medium |
-| `subagent-driven-dev/SKILL.md` | 🌐 English, self-review OK | 🇨🇳 Chinese, mandatory review + layered parallel execution | 🔴 **Massive** |
-| `spec-reviewer-prompt.md` | 🌐 `spec-reviewer` | 🇨🇳 `spec-reviewer` + Spec Reference on-demand | 🟡 Medium |
-| `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD loading + contract constraints | 🟡 Medium |
-| `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese, triggered in Stage 2 per task | 🔵 Small |
+| `subagent-driven-dev/SKILL.md` | 🌐 English, self-review OK | 🇨🇳 Chinese, **overall dual review gates** (zero per-task review) + layered parallel execution | 🔴 **Massive** |
+| `spec-reviewer-prompt.md` | 🌐 English, per-task local review | 🇨🇳 Chinese, **overall** review template (on-demand full-code reads, self-locate features) | 🟡 Medium |
+| `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD + contracts + self-review hint | 🟡 Medium |
+| `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese, **overall code-review** trigger (after all tasks complete) | 🔵 Small |
 | `code-reviewer.md` | 🌐 English | 🇨🇳 Chinese, added architecture/file responsibility checks | 🟡 Medium |
 | ~~`executing-plans/SKILL.md`~~ | 🌐 English (78 lines) | ❌ **Deleted** | ⚫ Removed |
 
@@ -345,7 +363,7 @@ Describe your requirements in a Claude Code session, and Claude will automatical
 | ① | 📝 **Requirements** → Spec output | 🛑 Wait for your confirmation |
 | ② | 📋 **Task decomposition** → Plan output | 🛑 Wait for your confirmation |
 | ③ | 🤖 **Subagent execution** | Fully automatic |
-| ④ | 👀 **Final review** | requesting-code-review |
+| ④ | 👀 **Overall dual review** | overall spec-review → overall code-review (requesting-code-review) |
 | ⑤ | 🏁 **Branch wrap-up** | finishing-a-development-branch |
 
 ### ⚠️ Notes

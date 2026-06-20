@@ -21,9 +21,9 @@ skills/                          # 所有技能文件（核心产出）
 │   ├── SKILL.md                 #   全中文 + 任务分解 + Produces/Consumes + 自动 DAG 分层 + 子代理全面审查
 │   └── plan-document-reviewer-prompt.md  # 🆕 计划审查模板（含 Produces/Consumes 引用完整性检查）
 ├── subagent-driven-development/ # 🔴 重度改造：执行计划
-│   ├── SKILL.md                 #   全中文 + 分层并行 + 双阶段审查 + 进度持久化（Edit → TodoWrite）
-│   ├── implementer-prompt.md    #   全中文 + 强制加载 TDD 技能 + 契约约束
-│   └── spec-reviewer-prompt.md  #   全中文 + Spec Reference 按需读取
+│   ├── SKILL.md                 #   全中文 + 整体双审查门控（任务级零独立审查）+ 分层并行 + 进度持久化（Edit → TodoWrite）
+│   ├── implementer-prompt.md    #   全中文 + 强制加载 TDD 技能 + 契约约束 + 自审提示
+│   └── spec-reviewer-prompt.md  #   全中文 + 整体审查模板（按需读取全量代码，自主定位）
 ├── test-driven-development/     # 🟡 TDD 技能（来自官方，部分中文化）
 ├── requesting-code-review/      # 🟡 代码审查技能（全中文）
 ├── finishing-a-development-branch/  # 分支收尾（来自官方）
@@ -68,7 +68,7 @@ brainstorming → writing-plans → subagent-driven-development
 - Controller：需求一致性（遗漏/曲解）
 
 ### 5. 进度持久化（subagent-driven-development）
-每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TodoWrite 标记。文件是唯一持久化真相源。
+每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TodoWrite 标记。文件是唯一持久化真相源。**任务级零独立审查**：每任务实现即标记，所有任务完成后进入整体双审查门控（整体 spec-review → 整体 code-review）。
 
 ### 6. 已删除 executing-plans
 官方有两条执行路径（executing-plans + subagent-driven-development），Lite 统一为 subagent-driven-development 单一执行路径。
@@ -79,7 +79,7 @@ brainstorming → writing-plans → subagent-driven-development
 |------|:--------:|------|---------|
 | brainstorming | 🟡 中 | 🇨🇳 | 强制阻断 + 图表驱动 + 契约与接口 + 双审查 |
 | writing-plans | 🔴 极大 | 🇨🇳 | 完全重写：代码副本 → 任务分解 + Produces/Consumes + DAG 分层 |
-| subagent-driven-development | 🔴 极大 | 🇨🇳 | 分层并行 + 强制审查 + 进度持久化 |
+| subagent-driven-development | 🔴 极大 | 🇨🇳 | 整体双审查门控（任务级零独立审查）+ 分层并行执行 |
 | requesting-code-review | 🔵 小 | 🇨🇳 | 中文化 |
 | executing-plans | ⚫ 删除 | — | 统一执行路径 |
 
@@ -99,12 +99,3 @@ cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/s
 - 技术术语保留英文（如 TDD、DAG、Produces/Consumes、checkbox）
 - README 提供中英双语版本
 
-## 全局铁律（来自用户 CLAUDE.md）
-
-此仓库的使用者有以下全局规则，所有操作必须遵守：
-
-1. **简体中文输出** — 所有输出使用简体中文，技术术语可保留英文
-2. **SDD + TDD 双阶段** — 先 Spec 后 Plan 后 TDD 实现，无例外
-3. **PBE 协议（Plan-Block-Execute）** — 输出方案 → 强制停止 → 等待「确认执行」→ 执行
-4. **三层漏斗检索** — LSP > Glob/Grep > Bash find/grep
-5. **AskUserQuestion 优先** — 涉及用户决策时使用结构化选择题

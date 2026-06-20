@@ -12,7 +12,7 @@ description: 在完成任务、实现主要功能或合并之前使用，验证�
 ## 何时请求审查
 
 **必须：**
-- 在 subagent-driven-development 中每个任务完成后
+- 在 subagent-driven-development 中**所有任务完成后、整体 spec-review 通过后**（即整体双审查门控的第二关）
 - 在完成主要功能后
 - 在合并到 main 之前
 
@@ -75,9 +75,9 @@ HEAD_SHA=$(git rev-parse HEAD)
 ## 与工作流的集成
 
 **子代理驱动开发：**
-- 每个任务之后审查
-- 在问题累积之前发现
-- 修复后再继续下一个任务
+- 所有任务完成、整体 spec-review 通过后审查（**整体 code-review**）
+- 看到全量 diff，具备全局视角
+- 修复后再进入 finishing-a-development-branch
 
 **临时开发：**
 - 合并前审查
