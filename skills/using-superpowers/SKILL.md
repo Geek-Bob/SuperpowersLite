@@ -15,73 +15,27 @@ description: 在开始任何会话时使用 - 建立如何查找和使用技能�
 这是不可协商的。这不是可选的。你无法为自己找借口开脱。
 </EXTREMELY-IMPORTANT>
 
-## 指令优先级
-
-Superpowers 技能会覆盖默认的系统提示行为，但**用户指令始终优先**：
-
-1. **用户的明确指令**（CLAUDE.md、GEMINI.md、AGENTS.md、直接请求）— 最高优先级
-2. **Superpowers 技能** — 在发生冲突时覆盖默认系统行为
-3. **默认系统提示** — 最低优先级
-
-如果 CLAUDE.md、GEMINI.md 或 AGENTS.md 中写着"不要使用 TDD"，而某个技能说"始终使用 TDD"，则遵循用户的指令。用户拥有控制权。
-
-## 如何访问技能
-
-**在 Claude Code 中：** 使用 `Skill` 工具。当你调用某个技能时，其内容会被加载并呈现给你—直接遵循它。永远不要对技能文件使用 Read 工具。
-
-**在 Copilot CLI 中：** 使用 `skill` 工具。技能会从已安装的插件中自动发现。`skill` 工具的工作方式与 Claude Code 的 `Skill` 工具相同。
-
-**在 Gemini CLI 中：** 技能通过 `activate_skill` 工具激活。Gemini 在会话开始时加载技能元数据，并按需激活完整内容。
-
-**在其他环境中：** 请查阅你所使用平台的文档，了解技能的加载方式。
-
-## 平台适配
-
-技能使用 Claude Code 的工具名称。非 CC 平台：请参阅 `references/copilot-tools.md`（Copilot CLI）、`references/codex-tools.md`（Codex）以了解工具对应关系。Gemini CLI 用户会通过 GEMINI.md 自动获得工具映射。
-
-# 使用技能
-
 ## 规则
 
-**在任何响应或操作之前，调用相关或被请求的技能。** 即使某个技能只有 1% 的可能性适用，也应调用该技能进行检查。如果调用的技能结果证明不适合当前情况，你不必使用它。
+**在任何响应或操作之前，调用相关或被请求的技能**——包括澄清问题、探索代码库、查看文件之前。调用后发现不适合当前情况，可以不用。
 
-```dot
-digraph skill_flow {
-    "收到用户消息" [shape=doublecircle];
-    "可能适用任何技能？" [shape=diamond];
-    "调用 Skill 工具" [shape=box];
-    "宣告：'使用 [技能] 来完成 [目的]'" [shape=box];
-    "有检查清单？" [shape=diamond];
-    "为每项创建任务" [shape=box];
-    "严格遵循技能" [shape=box];
-    "回复（包括澄清问题）" [shape=doublecircle];
+**准备进入实现前：** 若尚未 brainstorming，先调用它。brainstorming 先分类路径，三条路各不相同：
 
-    "准备进入实现？" [shape=doublecircle];
-    "已完成头脑风暴？" [shape=diamond];
-    "调用 brainstorming\n（先分类并宣告路径）" [shape=box];
-    "Spike：汇报结论\n（一次性产物，不写文档）" [shape=doublecircle];
-    "Bounded：Controller 直接实现\n(TDD + requesting-code-review)" [shape=doublecircle, style=filled, fillcolor=lightgrey];
-    "Architectural：writing-plans\n↓\nsubagent-driven-development" [shape=box, style=filled, fillcolor=lightgrey];
-    "子代理强制加载\nTDD 技能" [shape=box, style=filled, fillcolor=lightgrey];
+- **Spike** —— 可行性问题、产出是答案 → 汇报结论（不写文档、不留要保留的代码）
+- **Bounded** —— 本仓库已有流程的小改动 → TDD 直接实现 + requesting-code-review
+- **Architectural** —— 新子系统、改动他人依赖的接口 → writing-plans，再在执行交接时二选一：**subagent-driven-development**（每任务派子代理）或 **executing-plans**（内联，最省）
 
-    "收到用户消息" -> "可能适用任何技能？";
-    "可能适用任何技能？" -> "调用 Skill 工具" [label="是，哪怕只有 1%"];
-    "可能适用任何技能？" -> "回复（包括澄清问题）" [label="绝对不适用"];
-    "调用 Skill 工具" -> "宣告：'使用 [技能] 来完成 [目的]'";
-    "宣告：'使用 [技能] 来完成 [目的]'" -> "有检查清单？";
-    "有检查清单？" -> "为每项创建任务" [label="是"];
-    "有检查清单？" -> "严格遵循技能" [label="否"];
-    "为每项创建任务" -> "严格遵循技能";
+然后宣告「使用 [技能] 来完成 [目的]」，严格遵循它。技能带检查清单 → 为每项建一个任务。
 
-    "准备进入实现？" -> "已完成头脑风暴？";
-    "已完成头脑风暴？" -> "调用 brainstorming\n（先分类并宣告路径）" [label="否"];
-    "已完成头脑风暴？" -> "可能适用任何技能？" [label="是"];
-    "调用 brainstorming\n（先分类并宣告路径）" -> "Spike：汇报结论\n（一次性产物，不写文档）" [label="Spike"];
-    "调用 brainstorming\n（先分类并宣告路径）" -> "Bounded：Controller 直接实现\n(TDD + requesting-code-review)" [label="Bounded"];
-    "调用 brainstorming\n（先分类并宣告路径）" -> "Architectural：writing-plans\n↓\nsubagent-driven-development" [label="Architectural"];
-    "Architectural：writing-plans\n↓\nsubagent-driven-development" -> "子代理强制加载\nTDD 技能";
-}
-```
+## 技能优先级
+
+多个技能都适用时，**流程类技能优先**——它们决定怎么做：
+
+1. **流程类**（brainstorming、writing-plans、systematic-debugging）
+2. **实现类**（subagent-driven-development、executing-plans、test-driven-development、dispatching-parallel-agents）
+
+「让我们构建 X」→ 先 brainstorming 分类；Architectural 走 writing-plans → 执行交接二选一。
+「修复这个 bug」→ 先 systematic-debugging，再按需其他。
 
 ## 危险信号
 
@@ -102,24 +56,16 @@ digraph skill_flow {
 | "这感觉很有成效" | 无纪律的行动浪费时间。技能可以防止这种情况。 |
 | "我知道那是什么意思" | 知道概念 ≠ 使用技能。调用它。 |
 
-## 技能优先级
+## 平台适配
 
-当多个技能都适用时，按以下顺序使用：
+技能正文使用 Claude Code 的工具名。非 CC 平台读对应 reference，含该平台的技能调用方式与工具映射：
 
-1. **首先使用流程类技能**（brainstorming、writing-plans、systematic-debugging）— 这些决定如何处理任务
-2. **其次使用实现类技能**（subagent-driven-development、test-driven-development、dispatching-parallel-agents）— 这些指导执行
-
-"让我们构建 X" → brainstorming 先分类：Spike 直接给结论；Bounded 走 TDD + requesting-code-review；Architectural 走 writing-plans → subagent-driven-development（子代理强制加载 TDD）。
-"修复这个 bug" → systematic-debugging，然后按需使用其他技能。
-
-## 技能类型
-
-**严格型**（test-driven-development、systematic-debugging）：严格遵循。不要为了变通而放弃纪律。
-
-**灵活型**（patterns）：根据上下文调整原则。
-
-技能本身会告诉你它是哪种类型。
+- Codex：`references/codex-tools.md`
+- Copilot CLI：`references/copilot-tools.md`
+- Gemini CLI：`references/gemini-tools.md`
 
 ## 用户指令
 
-指令说明的是"做什么"，而不是"怎么做"。"添加 X"或"修复 Y"并不意味着可以跳过工作流。
+**用户指令始终优先**（CLAUDE.md、AGENTS.md、GEMINI.md、直接请求）> Superpowers 技能 > 默认系统提示。
+
+指令说明的是"做什么"，不是"怎么做"。"添加 X"或"修复 Y"不意味着可以跳过工作流。除非用户明确说了跳，否则不跳。

@@ -167,20 +167,24 @@ async function retryOperation<T>(
 
 ### 验证 GREEN — 看着它通过
 
-**强制。**
+**强制。跑项目测试命令，不只是你写的那一个文件。**
 
 ```bash
-npm test path/to/test.test.ts
+npm test          # 或 pytest / cargo test / go test ./...
 ```
 
 确认：
-- 测试通过
-- 其他测试仍然通过
+- 你写的测试通过
+- **整个项目套件通过**——单个文件绿了不等于套件绿了
 - 输出干净（无错误、无警告）
 
 **测试失败？** 修代码，不是修测试。
 
 **其他测试失败？** 立刻修。
+
+**套件里任何失败都要按名报告**，包括不是你造成的那个。
+任务写"只改 X 文件"，限定的是**交付范围**，不是**验证范围**。
+看着一条红测试滚过去却不提——报告因隐瞒而失实。
 
 ### REFACTOR — 清理
 
@@ -356,7 +360,7 @@ PASS
 
 ## 测试反模式
 
-加 mock 或测试工具时，阅读 @writing-good-tests.md 遵守写好测试的规则：
+加 mock 或测试工具时，阅读 [writing-good-tests.md](writing-good-tests.md) 遵守写好测试的规则：
 - 断言 mock 存在
 - 给生产类加测试专用方法
 - 不理解副作用就 mock
