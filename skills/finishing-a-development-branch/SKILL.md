@@ -50,9 +50,9 @@ This determines which menu to show and how cleanup works:
 
 | State | Menu | Cleanup |
 |-------|------|---------|
-| `GIT_DIR == GIT_COMMON` (normal repo) | Standard 4 options | No worktree to clean up |
-| `GIT_DIR != GIT_COMMON`, named branch | Standard 4 options | Provenance-based (see Step 6) |
-| `GIT_DIR != GIT_COMMON`, detached HEAD | Reduced 3 options (no merge) | No cleanup (externally managed) |
+| `GIT_DIR == GIT_COMMON` (normal repo) | Standard 3 options | No worktree to clean up |
+| `GIT_DIR != GIT_COMMON`, named branch | Standard 3 options | Provenance-based (see Step 6) |
+| `GIT_DIR != GIT_COMMON`, detached HEAD | Reduced 2 options (no merge) | No cleanup (externally managed) |
 
 ### Step 3: Determine Base Branch
 
@@ -65,7 +65,7 @@ Or ask: "This branch split from main - is that correct?"
 
 ### Step 4: Present Options
 
-**Normal repo and named-branch worktree — present exactly these 4 options:**
+**Normal repo and named-branch worktree — present exactly these 3 options:**
 
 ```
 Implementation complete. What would you like to do?
@@ -73,24 +73,24 @@ Implementation complete. What would you like to do?
 1. Merge back to <base-branch> locally
 2. Push and create a Pull Request
 3. Keep the branch as-is (I'll handle it later)
-4. Discard this work
 
 Which option?
 ```
 
-**Detached HEAD — present exactly these 3 options:**
+**Detached HEAD — present exactly these 2 options:**
 
 ```
 Implementation complete. You're on a detached HEAD (externally managed workspace).
 
 1. Push as new branch and create a Pull Request
 2. Keep as-is (I'll handle it later)
-3. Discard this work
 
 Which option?
 ```
 
 **Don't add explanation** - keep options concise.
+
+**菜单里不出现「丢弃」。** 丢弃只在用户明确要求时执行（见下方「用户要求丢弃工作」）。把「丢弃」摆在「合并」旁边，等于向用户推销销毁一份已完成且测试通过的工作。
 
 ### Step 5: Execute Choice
 
@@ -143,9 +143,11 @@ Report: "Keeping branch <name>. Worktree preserved at <path>."
 
 **Don't cleanup worktree.**
 
-#### Option 4: Discard
+#### 用户明确要求丢弃工作时
 
-**Confirm first:**
+**这段路径只因用户明确要求丢弃而存在——它不是菜单选项。**
+
+先确认：
 ```
 This will permanently delete:
 - Branch <name>
@@ -155,22 +157,20 @@ This will permanently delete:
 Type 'discard' to confirm.
 ```
 
-Wait for exact confirmation.
-
-If confirmed:
+等到**一字不差**的确认。收到后：
 ```bash
 MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
 cd "$MAIN_ROOT"
 ```
 
-Then: Cleanup worktree (Step 6), then force-delete branch:
+然后：Cleanup worktree（Step 6），再强删分支：
 ```bash
 git branch -D <feature-branch>
 ```
 
 ### Step 6: Cleanup Workspace
 
-**Only runs for Options 1 and 4.** Options 2 and 3 always preserve the worktree.
+**Only runs for Option 1 and 用户要求丢弃.** Options 2 and 3 always preserve the worktree.
 
 ```bash
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
@@ -189,6 +189,24 @@ git worktree remove "$WORKTREE_PATH"
 git worktree prune  # Self-healing: clean up any stale registrations
 ```
 
+**移除被拒绝时**（报 `contains modified or untracked files`）：该 worktree 里存在**别处没有的文件**——未提交的计划、笔记、临时产物。**绝不自行加 `--force`**。先让用户看清代价：
+
+```bash
+git -C "$WORKTREE_PATH" status --porcelain -uall
+```
+
+```
+Worktree removal refused — these files were never committed:
+
+<file list>
+
+1. Commit them to <branch> before cleanup
+2. Move them into <main repo root>
+3. Delete them (unrecoverable)
+
+Which?
+```
+
 **Otherwise:** The host environment (harness) owns this workspace. Do NOT remove it. If your platform provides a workspace-exit tool, use it. Otherwise, leave the workspace in place.
 
 ## Quick Reference
@@ -198,7 +216,7 @@ git worktree prune  # Self-healing: clean up any stale registrations
 | 1. Merge locally | yes | - | - | yes |
 | 2. Create PR | - | yes | yes | - |
 | 3. Keep as-is | - | - | yes | - |
-| 4. Discard | - | - | - | yes (force) |
+| Discard（仅用户明确要求时） | - | - | - | yes (force) |
 
 ## Common Mistakes
 
@@ -208,11 +226,11 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 **Open-ended questions**
 - **Problem:** "What should I do next?" is ambiguous
-- **Fix:** Present exactly 4 structured options (or 3 for detached HEAD)
+- **Fix:** Present exactly 3 structured options (or 2 for detached HEAD)
 
 **Cleaning up worktree for Option 2**
 - **Problem:** Remove worktree user needs for PR iteration
-- **Fix:** Only cleanup for Options 1 and 4
+- **Fix:** Only cleanup for Option 1 and explicit discard
 
 **Deleting branch before removing worktree**
 - **Problem:** `git branch -d` fails because worktree still references the branch
@@ -230,6 +248,14 @@ git worktree prune  # Self-healing: clean up any stale registrations
 - **Problem:** Accidentally delete work
 - **Fix:** Require typed "discard" confirmation
 
+**在菜单里展示「丢弃」**
+- **Problem:** 把「丢弃」摆在「合并」旁边，等于向用户推销销毁一份已完成且测试通过的工作
+- **Fix:** 菜单只有 3 个选项（detached HEAD 2 个）；丢弃仅由用户明确要求触发
+
+**worktree 移除被拒时加 `--force`**
+- **Problem:** 被拒意味着该 worktree 里有别处不存在的文件——`--force` 会永久销毁它们
+- **Fix:** 停下，列出文件，征询用户（绝不自行 `--force`）
+
 ## Red Flags
 
 **Never:**
@@ -240,12 +266,15 @@ git worktree prune  # Self-healing: clean up any stale registrations
 - Remove a worktree before confirming merge success
 - Clean up worktrees you didn't create (provenance check)
 - Run `git worktree remove` from inside the worktree
+- 在菜单里展示「丢弃」——它只在用户明确要求时才存在
+- worktree 移除被拒时自行加 `--force`
 
 **Always:**
 - Verify tests before offering options
 - Detect environment before presenting menu
-- Present exactly 4 options (or 3 for detached HEAD)
-- Get typed confirmation for Option 4
-- Clean up worktree for Options 1 & 4 only
+- Present exactly 3 options (or 2 for detached HEAD)
+- Get typed confirmation before any discard
+- Clean up worktree for Option 1 & explicit discard only
 - `cd` to main repo root before worktree removal
 - Run `git worktree prune` after removal
+- 移除被拒 → 列出文件并征询用户
