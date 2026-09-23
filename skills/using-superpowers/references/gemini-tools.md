@@ -10,7 +10,7 @@ Skills 使用 Claude Code 的工具名称。当你在 skill 中遇到这些名�
 | `Bash`（执行命令） | `run_shell_command` |
 | `Grep`（搜索文件内容） | `grep_search` |
 | `Glob`（按名称搜索文件） | `glob` |
-| `TodoWrite`（任务跟踪） | `write_todos` |
+| `TaskCreate` / `TaskUpdate`（任务跟踪） | `write_todos` |
 | `Skill` 工具（调用 skill） | `activate_skill` |
 | `WebSearch` | `google_web_search` |
 | `WebFetch` | `web_fetch` |

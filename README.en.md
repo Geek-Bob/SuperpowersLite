@@ -197,8 +197,8 @@ Every request is first **triaged** by `brainstorming` into one of three fixed pa
   │  │  ┌────────────────────────────────────────────────────────────┐   │          │
   │  │  │ ① Edit plan file checkbox: - [ ] → - [x]                    │   │          │
   │  │  │    File is the single persistent source of truth             │   │          │
-  │  │  │ ② TodoWrite mark complete                                    │   │          │
-  │  │  │    Edit MUST precede TodoWrite                                │   │          │
+  │  │  │ ② TaskUpdate mark complete                                   │   │          │
+  │  │  │    Edit MUST precede TaskUpdate                               │   │          │
   │  │  └────────────────────────────────────────────────────────────┘   │          │
   │  └────────────────────────────────────────────────────────────────────┘          │
   │                                                                                  │
@@ -237,7 +237,7 @@ Every request is first **triaged** by `brainstorming` into one of three fixed pa
   │  ┌────────────────────────────────────────────────────────────────────┐         │
   │  │ Controller self-review · Controller fixes code · Per-task independent review│
   │  │ Skip mandatory review · Cross-layer parallel · Same-layer serial · Fix without context│
-  │  │ TodoWrite without file update · spec ❌ still enter code · code ❌ still mark done│
+  │  │ TaskUpdate without file update · spec ❌ still enter code · code ❌ still mark done│
   │  └────────────────────────────────────────────────────────────────────┘         │
   └──────┬───────────────────────────────────────────────────────────────────────────┘
          │ Review gate passed
@@ -296,12 +296,12 @@ Phase 2: Review Gate (spec-review always; code-review routed by deliverable)
 
 ### ④ Persistent Progress + Context Preservation
 
-After each task completes, **immediately edit the plan file** checkbox (`- [ ]` → `- [x]`), then TodoWrite. The file is the single persistent source of truth — progress can be recovered from checkbox state even if the session is interrupted. Fixes dispatch a **new implementer + original task context + review issue list** — context is never lost, old paths are never retread.
+After each task completes, **immediately edit the plan file** checkbox (`- [ ]` → `- [x]`), then TaskUpdate. The file is the single persistent source of truth — progress can be recovered from checkbox state even if the session is interrupted. Fixes dispatch a **new implementer + original task context + review issue list** — context is never lost, old paths are never retread.
 
 The plan document also carries a `## Rulings` section for **one-line rulings** on key decisions (`> **Ruling:** <what was decided> — <why> — <cost if wrong>`) — rulings only, no Ledger and no running log. Dispatch is **pointer-based**: the controller hands over only "plan file path + `offset`/`limit` line window + this task's extra constraints + report path", never pasting task text or session history, **physically blocking context bloat**; reviewers and fixers **run `git diff` themselves** — the controller neither fetches nor pastes diff bodies into any prompt.
 
 ```
-Edit plan file checkbox (persistent) → TodoWrite (session marker)
+Edit plan file checkbox (persistent) → TaskUpdate (session marker)
 Fix: new subagent + original context + issue list
 Context blocking: pointer dispatch (offset/limit only) · subagents run git diff themselves
 ```
@@ -332,7 +332,7 @@ Removed the official **executing-plans** skill (two execution paths → single e
 | 🔗 | No contract mechanism, interfaces written ad-hoc | Contracts & Interfaces chapter mandatory, all implementers share one API |
 | 🧪 | TDD optional, subagents often skip | Enforced TDD loading, Red → Green → Refactor |
 | 👀 | Controller self-reviews | **Routed review gates** (spec-review always; code-review when the deliverable has executable code), subagent has full global perspective, more accurate findings |
-| 💾 | TodoWrite only, progress lost on session end | Edit plan file checkbox in real-time, file is persistent source of truth |
+| 💾 | TaskUpdate only, progress lost on session end | Edit plan file checkbox in real-time, file is persistent source of truth |
 | 🔧 | Fixes lose context | New implementer + original task context + review issue list |
 | 📋 | Design/plan reviews ineffective (orphan files) | Dual review + cross-reference review, every review file is called in workflow |
 | 🗑️ | Two execution paths (subagent + executing) | Single execution path, executing-plans deleted |

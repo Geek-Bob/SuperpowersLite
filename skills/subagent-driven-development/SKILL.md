@@ -14,7 +14,7 @@ description: 在当前会话中执行实施计划时使用。计划已确认后�
 ## 执行
 
 ```
-读取计划 → 提取「执行分层」表 → TodoWrite 所有任务
+读取计划 → 提取「执行分层」表 → TaskCreate 所有任务
   → 阶段 1：逐层并行执行
   → 阶段 2：审查门控（spec-review 必跑，code-review 按交付物分流）
 ```
@@ -148,7 +148,7 @@ grep -n "^### Task N:" <计划文件> → 得该任务 offset/limit
   → 实现者四维自审（完整性/质量/纪律/测试）
   → 报告全文写入 task-N-report.md
   → 返回：状态 + commit + 一行测试摘要 + 顾虑（无开场白）
-  → Edit 计划文件 checkbox [- → x] → TodoWrite 标记完成
+  → Edit 计划文件 checkbox [- → x] → TaskUpdate 标记完成
 ```
 
 **详细 Prompt 模板：** `./implementer-prompt.md`
@@ -163,10 +163,12 @@ grep -n "^### Task N:" <计划文件> → 得该任务 offset/limit
 
 ### 操作顺序
 
-1. **先 Edit 计划文件：** 找到该任务的 checkbox，将 `- [ ]` 改为 `- [x]`
-2. **再 TodoWrite 标记：** 在会话中更新任务状态为已完成
+1. **派发时建档：** `TaskCreate({ subject, description, activeForm })` → 得 taskId
+2. **任务开始时：** `TaskUpdate({ taskId, status: "in_progress" })`
+3. **完成后先 Edit 计划文件：** 找到该任务的 checkbox，将 `- [ ]` 改为 `- [x]`
+4. **再 TaskUpdate 标记：** `TaskUpdate({ taskId, status: "completed" })`
 
-**Edit 必须在 TodoWrite 之前。** 文件持久化优先于会话标记。
+**Edit 必须在 TaskUpdate 之前。** 文件持久化优先于会话标记。
 
 ### 失败处理
 
@@ -174,7 +176,7 @@ Edit 失败？重试，最多 3 次。仍失败？以 BLOCKED 状态暂停，向
 
 ### 为什么
 
-- TodoWrite 只在当前会话有效——会话结束，进度丢失
+- TaskUpdate 的状态只在当前会话有效——会话结束，进度丢失
 - 计划文件是唯一的持久化真相源——中断后重开，能从 checkbox 状态恢复
 - 实时回写确保任何时候看计划文件，都知道哪些任务已完成、哪些还在进行
 
@@ -292,7 +294,7 @@ code-review 的检查项是**错误处理、类型安全、Schema 迁移、安�
 - 修复实现者不附带审查报告和原始任务上下文
 - 跳过层级——上层未完成就进入下层
 - 不同层的任务并行派发
-- 只在 TodoWrite 标记完成但不回写计划文件 checkbox
+- 只在 TaskUpdate 标记完成但不回写计划文件 checkbox
 - 审查门控通过后，继续追加任务
 - 创建 ledger / `progress.md` / 逐任务历史记录
 - 把 diff 内容、报告全文或前序任务摘要粘进主上下文 / 派发 prompt
@@ -304,7 +306,7 @@ code-review 的检查项是**错误处理、类型安全、Schema 迁移、安�
 
 | 状态 | 动作 |
 |------|------|
-| DONE | 标记完成（Edit checkbox → TodoWrite）|
+| DONE | 标记完成（Edit checkbox → TaskUpdate）|
 | DONE_WITH_CONCERNS | 读顾虑。正确性/范围问题 → 修复后再标记。观察性意见 → 记录，正常标记完成 |
 | NEEDS_CONTEXT | 补充上下文，重新派发 |
 | BLOCKED | 上下文不足 → 补充后重派。需更强推理 → 升级模型。任务太大 → 拆分。计划问题 → 升级给用户 |
@@ -385,7 +387,7 @@ Rulings 的**格式契约由 writing-plans 计划模板定义**——本节只�
 - 别接受"差不多"的整体审查结果
 - 别用自审替代整体审查门控
 - 控制器不审查、不修代码
-- 别只标记 TodoWrite 不更新计划文件——进度必须持久化到文件，Edit 先于 TodoWrite
+- 别只标记 TaskUpdate 不更新计划文件——进度必须持久化到文件，Edit 先于 TaskUpdate
 - 审查门控通过后，别继续追加任务
 
 **子代理提问 → 清晰完整回答。整体审查发现问题 → 派修复子代理 → 重新该侧审查 → 循环直到通过。任务失败 → 派修复子代理，别手动修。**

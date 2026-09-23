@@ -8,7 +8,7 @@
 | 多个 `Task` 调用（并行） | 多个 `spawn_agent` 调用 |
 | Task 返回结果 | `wait_agent` |
 | Task 自动完成 | `close_agent` 释放槽位 |
-| `TodoWrite`（任务跟踪） | `update_plan` |
+| `TaskCreate` / `TaskUpdate`（任务跟踪） | `update_plan` |
 | `Skill` 工具（调用技能） | 技能原生加载——直接遵循指令即可 |
 | `Read`、`Write`、`Edit`（文件） | 使用你的原生文件工具 |
 | `Bash`（运行命令） | 使用你的原生 shell 工具 |

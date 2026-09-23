@@ -15,7 +15,7 @@
 | `Task` 工具（分派子代理） | 使用 `agent_type: "general-purpose"` 或 `"explore"` 的 `task` |
 | 多个 `Task` 调用（并行） | 多个 `task` 调用 |
 | 任务状态/输出 | `read_agent`、`list_agents` |
-| `TodoWrite`（任务跟踪） | 使用内置 `todos` 表的 `sql` |
+| `TaskCreate` / `TaskUpdate`（任务跟踪） | 使用内置 `todos` 表的 `sql` |
 | `WebSearch` | 无对应工具 — 使用带有搜索引擎 URL 的 `web_fetch` |
 | `EnterPlanMode` / `ExitPlanMode` | 无对应工具 — 保持在主会话中 |
 

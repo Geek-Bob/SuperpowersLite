@@ -21,7 +21,7 @@ skills/                          # 所有技能文件（核心产出）
 │   ├── SKILL.md                 #   全中文 + 任务分解 + Produces/Consumes + 自动 DAG 分层 + 子代理全面审查
 │   └── plan-document-reviewer-prompt.md  # 🆕 计划审查模板（含 Produces/Consumes 引用完整性检查）
 ├── subagent-driven-development/ # 🔴 重度改造：执行计划
-│   ├── SKILL.md                 #   全中文 + 审查门控分流 + 指针化派发 + 分层并行 + 进度持久化（Edit → TodoWrite）
+│   ├── SKILL.md                 #   全中文 + 审查门控分流 + 指针化派发 + 分层并行 + 进度持久化（Edit checkbox → TaskUpdate）
 │   ├── implementer-prompt.md    #   全中文 + 强制加载 TDD 技能 + 契约约束 + 自审提示
 │   └── spec-reviewer-prompt.md  #   全中文 + 整体审查模板（按需读取全量代码，自主定位）
 ├── test-driven-development/     # 🟡 TDD 技能（来自官方，部分中文化）
@@ -86,7 +86,7 @@ brainstorming 分类 ───┼─ Bounded ────────→ TDD 直
 - Controller：需求一致性（遗漏/曲解）
 
 ### 5. 进度持久化 + 审查门控分流（subagent-driven-development）
-每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TodoWrite 标记。文件是唯一持久化真相源。**所有任务完成后**进入**审查门控**：需求侧 `spec-review` **永远跑**；质量侧 `code-review` **仅当交付物含可执行代码时跑**，且**只审代码部分**。**纯文档 / 技能任务跳过 code-review**——code-review 的检查项（错误处理、类型安全、Schema 迁移、安全隐患）对技能 Markdown 是无效项。**例外（防一刀切）**：技能 / 文档任务夹带可执行代码（内嵌 bash / node 片段）时，code-review 只审那些代码片段，文档部分仍走 spec-review。
+每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TaskUpdate 标记完成。文件是唯一持久化真相源。**所有任务完成后**进入**审查门控**：需求侧 `spec-review` **永远跑**；质量侧 `code-review` **仅当交付物含可执行代码时跑**，且**只审代码部分**。**纯文档 / 技能任务跳过 code-review**——code-review 的检查项（错误处理、类型安全、Schema 迁移、安全隐患）对技能 Markdown 是无效项。**例外（防一刀切）**：技能 / 文档任务夹带可执行代码（内嵌 bash / node 片段）时，code-review 只审那些代码片段，文档部分仍走 spec-review。
 
 ### 6. 已删除 executing-plans
 官方有两条执行路径（executing-plans + subagent-driven-development），Lite 统一为 subagent-driven-development 单一执行路径（**计划执行阶段**）——Bounded / Spike 不写计划，不经该执行器。
