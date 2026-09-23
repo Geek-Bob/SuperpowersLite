@@ -2,7 +2,7 @@
 
 **Fork 点：** superpowers **v5.1.0**（2026-04-30）
 **当前上游：** superpowers **v6.4.1**（2026-09-18）
-**上次同步：** 2026-09-23
+**上次同步：** 2026-09-23（初版 v5.1.0 → v6.4.1）· 2026-09-23（二次复核）
 
 上游每个版本的变更都记在官方 `RELEASE-NOTES.md`（每条约带 PR 编号）。**同步时先读它**，不必重跑全量 diff。
 
@@ -43,6 +43,15 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | **writing-skills：CSO→SDO + `Claude`→`agent`** | 6.0.0 | 同上 | ①「描述写法影响技能发现」是通用机制，**不专属 Claude**；②Lite 支持 Codex / Copilot / Gemini，技能正文绑定「Claude」措辞不成立。14 处替换，保留真实路径 `` `~/.claude/skills` ` for Claude Code `` |
 | **修 `@file` force-load 引用（3 处）+ SDO 小节编号错** | 6.0.0 | `writing-skills/`、`test-driven-development/` | `@file` 语法会**立即 force-load** 文件，消耗 **200k+ 上下文**——直接命中「减少 token」判据。Lite 的 SDO 第 5 节自己写着「❌ Bad: `@...` (force-loads, burns context)」，却在同文件另两处（加 TDD 技能一处）用了 `@`→ 改为 markdown 链接/反引号。同时修掉 SDO 第 5 节误编为 `### 4.` 的编号错（与第 4 节撞号）|
 
+### 二次复核采纳（2026-09-23）
+
+| 上游项 | 引入版本 | 落点 | 采纳原因 |
+|---|:--:|---|---|
+| **brainstorming `Establish Shared Understanding`**（发现意图 → 回述供纠正 → 带进设计） | 6.4.1 | `brainstorming/SKILL.md` | 官方头号新增。Lite 原缺此步，直接进入设计提问——**漏检设计方向的源头**。请求已含目的时「直接回述」而非重复提问，不增加流程长度 |
+| **code-reviewer `Declined to judge` 清单 + 「合理用户期望」判据** | 6.4.1 | `requesting-code-review/code-reviewer.md` | ①spec 沉默 ≠ 许可：按合理用户期望定级，真实 crash 不再以「spec 没写」滑成 Minor；②搁置判定逐条列出交执行者裁决，**不让 finding 被静默丢弃**。与 Lite 已有的「无法从 diff 判定」同族但不同轴 |
+| **文档审查自审化**（brainstorming 结构质量自审 + writing-plans 自审） | 6.0.0–6.4.1 | `brainstorming/`、`writing-plans/` | 官方 `Self-Review` 明写 "not a subagent dispatch"，两个 `*-document-reviewer-prompt.md` 在官方已成**刻意孤儿**。Lite 原把它们当「孤儿引用」修复回工作流，等于把官方主动删掉的重流程恢复。**Lite 改后优于官方**：官方自审 4 项全是结构质量，**丢掉了需求一致性检查**；Lite 保住「需求遗漏/曲解/假设」三项，且少一次子代理启动 |
+| **Native 末尾审查用最强模型** | 6.4.1 | `executing-plans/SKILL.md` | 官方明说这是 most capable model 唯一挣得成本的位置——内联执行把「每任务 fresh context」省了，末尾这一个审查员**是整轮唯一一次买独立视角**，不该降级 |
+
 ### 更早已采纳（fork 时起）
 
 | 上游项 | 引入版本 | 落点 |
@@ -77,6 +86,17 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | 游标清理类（`find-polluter.sh`、`render-graphs.js`、packaging 脚本） | 各版本 | 与 Lite 无脚本的路线冲突 | 无 |
 | **`Micro-Test Wording Before Full Scenarios`** | 6.0.0 | 它是**流程**（5+ reps × 多变体 × 人工读每个匹配），不是文档；兑现频率低。按判据 1「减少不必要的流程」排不上 | 措辞问题更晚才在压力场景中暴露 |
 
+### 二次复核拒绝（2026-09-23）
+
+| 上游项 | 引入版本 | 拒绝原因 | 错判代价 |
+|---|:--:|---|---|
+| **controller「one layer down」降级**（controller 作为 mid-tier 嵌套子代理） | 6.4.1 | opt-in 特性，与 Lite「禁止嵌套派发」的**精神**不冲突（那是禁子代理再派子代理，这是 controller 自身降级），但 Lite 已用「轮次比 token 单价更重要」覆盖同一成本问题；引入会新增一条需要解释的例外 | 在超长 SDD 计划上少省一半协调成本 |
+| **同 basename 计划工作区冲突修复** | 6.4.1 | Lite 无 `sdd-workspace` 脚本，工作区以 `<plan-slug>` 命名且由计划文件名派生；同名计划在 Lite 流程下是**用户侧命名问题**，可用改名解决，不值得为此加规则 | 极端情况下两个同名计划共用目录，需手工改名 |
+| **`review-package` 拒绝空/非同源 `BASE..HEAD`** | 6.4.1 | Lite 无该脚本；等价保护已由「BASE 必须是派发前记录的 SHA，禁用 `HEAD~1`」这条规则承担 | 无 |
+| **finishing 的 `Red Flags` → `Common Rationalizations` 结构对齐** | 6.2.0 | 6.2.0 全库 campaign 的产物是**形式统一**，不是信息增减；Lite 的 `Red Flags` / `Common Mistakes` 三段结构信息量等价，改动只增加 diff 噪音 | 无 |
+| **writing-good-tests 的 `Gate Function` / `Quick Reference` / `Warning Signs`** | 6.2.0 | Lite 版已有「写前自检」承担 gate 职责、有「三条反模式」承担 warning 职责；官方多出的是同一内容的**再包装**，按判据 4「能复用就复用」不重抄 | 门控措辞不如官方硬 |
+| **bootstrap 平台清单换血**（官方列 CC/Codex/Pi/Antigravity/Hermes/Muse，删 Copilot） | 6.0–6.4 | Lite 目标平台是 Codex / Copilot / Gemini——**这是刻意选择**（轻量、覆盖主流），不是落后。官方清单里的 Pi/Antigravity/Hermes/Muse 是各自 harness 的适配，Lite 不含 | 这 5 个平台的用户需自行适配 |
+
 ---
 
 ## 已独立同构（Lite 与官方各自走到同一设计，无需动作）
@@ -106,6 +126,26 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | **契约与接口章节** | 并行的前提；官方只有 Interfaces 块而无自动分层 |
 
 > ⚠️ 注意：官方 6.1.0 曾把 bootstrap 的图**换成散文**（理由是每会话成本）。Lite 的双阶段图表策略用于**设计文档**，不与 bootstrap 冲突——两处用途不同。
+
+---
+
+## Lite 自身缺陷（二次复核实录）
+
+**记录成因，防止下次同步再写反。**
+
+### 紧耦合判据读反（已修正）
+
+| | 官方 6.4.1 | Lite（修正前） |
+|---|---|---|
+| 紧耦合任务的去向 | **手工执行，或先 brainstorming** | ~~走 Native 内联执行~~ |
+
+**官方证据：** SDD `when_to_use` 决策树 `"Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"]`；`executing-plans` 的 When to Use 明写 *"Tasks are mostly independent — the same precondition as subagent-driven-development"*。
+
+**成因：** 初版同步时读到「官方明说紧耦合不该用 SDD」，正确结论是「该手工做」，但被推成了「所以用 Native」——**把否定判断当成了正向推荐**。官方立场是 Native 与 SDD **前提完全相同**，紧耦合时两者都不适用。
+
+**连带影响：** `CLAUDE.md` 决策 #6 的恢复理由（2）、`README` / `README.en.md` 的对应行。理由（1）成本阶梯断层与（3）无子代理平台**不受影响**，Native 本身该恢复。
+
+**教训：** 引用官方判据时，必须**摘录判据原文 + 行号**，不能只记自己的推论结论。推论一旦写进台账，下次同步会拿它当既成事实复读。
 
 ---
 
