@@ -5,7 +5,7 @@
 > **Contract-First · DAG Layered Parallelism · Enforced TDD · Routed Review Gates · Persistent Progress**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Based on](https://img.shields.io/badge/based%20on-Superpowers%20v5.1.0-8A2BE2?style=flat-square)](https://github.com/obra/superpowers)
+[![Based on](https://img.shields.io/badge/based%20on-Superpowers%20v5.1.0%20%E2%86%92%20v6.4.1-8A2BE2?style=flat-square)](https://github.com/obra/superpowers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/Geek-Bob/SuperpowersLite/pulls)
 
 <br>
@@ -41,11 +41,13 @@ Every request is first **triaged** by `brainstorming` into one of three fixed pa
 |------|------|--------|---------|
 | **Spike** | A feasibility question ("can we…", "rough is fine") — the output is an **answer**, not code worth keeping | Question + 2-3 sentence probe plan | A conclusion (no doc, no code worth keeping) |
 | **Bounded** | A small change to an **existing workflow** in this repo (a flag, a small endpoint, a single-file fix) | A short design in chat | TDD straight into implementation + requesting-code-review |
-| **Architectural** | New project, new subsystem, assembling a refactor, changing an interface others depend on | Written spec + plan | writing-plans → subagent-driven-development |
+| **Architectural** | New project, new subsystem, assembling a refactor, changing an interface others depend on | Written spec + plan | writing-plans → SDD or Native inline (either) |
 
 > 🎚️ **Gates are stage-scoped:** approval at the conversation level only authorizes writing the spec; approval of the written spec is what unlocks writing-plans. Each reply approves only the stage currently on the table.
 
 > 📌 The full diagram below is the **Architectural path**. Spike stops at a conclusion; Bounded goes from an approved short design straight to TDD + `requesting-code-review`. Neither writes a spec or invokes writing-plans.
+>
+> 🆕 The Architectural execution stage is a **choice of two**: `subagent-driven-development` (a fresh subagent per task — best when there are many, loosely coupled tasks) or `executing-plans` (**Native inline** — you implement every task in this session, the **cheapest** option, best for few or tightly coupled tasks). Both share the same workspace convention and the same end-of-run review gate.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
@@ -152,9 +154,9 @@ Every request is first **triaged** by `brainstorming` into one of three fixed pa
   │      ▼                                                                           │
   │  ┌─ Phase 1: Execute Layer by Layer, Parallel Within Layer ─────────┐          │
   │  │                                                                    │          │
-  │  │  🆕 Task-level quality safety net:                                  │          │
+  │  │  🆕 Task level: self-review, no reviewer                           │          │
   │  │  ┌──────────────────────────────────────────────────────────┐    │          │
-  │  │  │ ①Contracts ②Enforced TDD ③Self-review ④Overall review gate │    │          │
+  │  │  │ ①Contracts ②Enforced TDD ③Self-review                      │    │          │
   │  │  │ Implementer self-reviews and marks done — no per-task review│    │          │
   │  │  └──────────────────────────────────────────────────────────┘    │          │
   │  │                                                                    │          │
@@ -318,7 +320,9 @@ Code review: added architecture checks (file responsibility/testability/structur
 
 ### ⑥ Streamlined & Unified
 
-Removed the official **executing-plans** skill (two execution paths → single entry). Eliminated all orphan review files (spec-document-reviewer-prompt.md, plan-document-reviewer-prompt.md, etc. — from dead references to working workflow steps). The **Architectural** skill chain is unified as `brainstorming → writing-plans → subagent-driven-development`; Spike and Bounded branch off into their own shorter paths after brainstorming triage.
+Eliminated all orphan review files (spec-document-reviewer-prompt.md, plan-document-reviewer-prompt.md, etc. — from dead references to working workflow steps). The **Architectural** skill chain is `brainstorming → writing-plans → execution handoff (choice of two)`; Spike and Bounded branch off into their own shorter paths after brainstorming triage.
+
+**executing-plans was restored on 2026-09-23** — official v6.4.1 rebuilt it from a 64-line stub into **Native inline execution** (the cheapest way to run a plan), which Lite borrows and rewrites minimally (~100 lines, zero scripts).
 
 ---
 
@@ -335,7 +339,7 @@ Removed the official **executing-plans** skill (two execution paths → single e
 | 💾 | TaskUpdate only, progress lost on session end | Edit plan file checkbox in real-time, file is persistent source of truth |
 | 🔧 | Fixes lose context | New implementer + original task context + review issue list |
 | 📋 | Design/plan reviews ineffective (orphan files) | Dual review + cross-reference review, every review file is called in workflow |
-| 🗑️ | Two execution paths (subagent + executing) | Single execution path, executing-plans deleted |
+| 🛤️ | Two execution paths, but executing-plans is a 64-line stub | Both paths implemented; Native inline rewritten minimally (zero scripts) with transparent cost |
 | 🏗️ | Code review lacks architecture checks | Added file responsibility/testability/structure compliance/bloat checks |
 
 ---
@@ -354,7 +358,7 @@ Removed the official **executing-plans** skill (two execution paths → single e
 | `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD + contracts + self-review hint | 🟡 Medium |
 | `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese, **overall code-review** trigger (only when the deliverable has executable code) | 🔵 Small |
 | `code-reviewer.md` | 🌐 English | 🇨🇳 Chinese, added architecture/file responsibility checks | 🟡 Medium |
-| ~~`executing-plans/SKILL.md`~~ | 🌐 English (78 lines) | ❌ **Deleted** | ⚫ Removed |
+| `executing-plans/SKILL.md` | 🌐 English (64-line stub) | 🆕 **New**: Native inline execution (implement every task yourself + one whole-branch review, zero scripts) | 🆕 New |
 
 ---
 
@@ -370,7 +374,7 @@ git clone https://github.com/Geek-Bob/SuperpowersLite.git
 claude plugins install superpowers@obra
 
 # Overwrite official skills with Lite skills
-cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/
+cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/6.4.1/skills/
 ```
 
 ### 🎬 Start Developing
@@ -389,7 +393,7 @@ Describe your requirements in a Claude Code session, and Claude will first invok
 |:-----:|------|------|
 | ① | 📝 **Requirements** → Spec output | 🛑 Wait for your confirmation |
 | ② | 📋 **Task decomposition** → Plan output | 🛑 Wait for your confirmation |
-| ③ | 🤖 **Subagent execution** | Fully automatic |
+| ③ | 🤖 **Execution** (SDD subagent / Native inline — either) | Fully automatic |
 | ④ | 👀 **Review gate** | overall spec-review (always) → overall code-review (only when the deliverable has executable code; requesting-code-review) |
 | ⑤ | 🏁 **Branch wrap-up** | finishing-a-development-branch |
 

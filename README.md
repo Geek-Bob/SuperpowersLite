@@ -5,7 +5,7 @@
 > **契约优先 · DAG 分层并行 · 强制 TDD · 审查门控分流 · 进度持久化**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Based on](https://img.shields.io/badge/based%20on-Superpowers%20v5.1.0-8A2BE2?style=flat-square)](https://github.com/obra/superpowers)
+[![Based on](https://img.shields.io/badge/based%20on-Superpowers%20v5.1.0%20%E2%86%92%20v6.4.1-8A2BE2?style=flat-square)](https://github.com/obra/superpowers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/Geek-Bob/SuperpowersLite/pulls)
 
 <br>
@@ -41,11 +41,13 @@
 |------|------|------|------|
 | **Spike** | 可行性问题（"能不能…"、"糙一点没关系"），产出是**答案**而非要保留的代码 | 问题 + 试探方案（2-3 句话） | 汇报结论（不写文档、不留要保留的代码） |
 | **Bounded** | 本仓库**已有流程**的小改动（加 flag、小端点、单文件修复） | 聊天内短设计 | TDD 直接实现 + requesting-code-review |
-| **Architectural** | 新项目、新子系统、重构组件拼装、改他人依赖的接口 | 书面 spec + 计划 | writing-plans → subagent-driven-development |
+| **Architectural** | 新项目、新子系统、重构组件拼装、改他人依赖的接口 | 书面 spec + 计划 | writing-plans → SDD 或 Native 内联（二选一） |
 
 > 🎚️ **门控是阶段级授权：** 对话层批准 → 只允许写 spec；书面 spec 批准 → 才允许调用 writing-plans；一次回复只批准当前呈现的那个阶段。
 
 > 📌 下方全流程图展示的是 **Architectural 路径**（完整链路）。Spike 止步于结论；Bounded 批准短设计后直接 TDD 实现 + `requesting-code-review`——两者都不写 spec、不调用 writing-plans。
+>
+> 🆕 Architectural 的执行阶段**二选一**：`subagent-driven-development`（每任务派子代理，适合任务多、接口耦合浅）或 `executing-plans`（**Native 内联**——本会话亲自逐任务实现，**最省**，适合任务少或紧耦合）。两者共用同一份工作区约定与末尾审查门控。
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
@@ -151,9 +153,9 @@
   │      ▼                                                                           │
   │  ┌─ 阶段 1：逐层并行执行（任务级：实现即标记）────────────────────┐          │
   │  │                                                                    │          │
-  │  │  🆕 任务级质量兜底：                                               │          │
+  │  │  🆕 任务级：自审，不派审查员                                       │          │
   │  │  ┌──────────────────────────────────────────────────────────┐    │          │
-  │  │  │ ①契约约束 ②强制 TDD ③实现者四维自审 ④整体审查门控          │    │          │
+  │  │  │ ①契约约束 ②强制 TDD ③四维自审                              │    │          │
   │  │  │ 实现者写完自审即标记，不派任务级独立审查子代理               │    │          │
   │  │  └──────────────────────────────────────────────────────────┘    │          │
   │  │                                                                    │          │
@@ -317,7 +319,9 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 
 ### ⑥ 精简统一
 
-删除官方 **executing-plans** 技能（两套执行路径 → 单一入口），删除所有孤儿审查文件（spec-document-reviewer-prompt.md、plan-document-reviewer-prompt.md 等从无效引用变为正常工作流环节）。**Architectural 需求**的技能链统一为 `brainstorming → writing-plans → subagent-driven-development`；Spike / Bounded 由 brainstorming 分档后走各自的短路径。
+修复官方所有孤儿审查文件（spec-document-reviewer-prompt.md、plan-document-reviewer-prompt.md 等从无效引用变为正常工作流环节）。**Architectural 需求**的技能链为 `brainstorming → writing-plans → 执行交接二选一`；Spike / Bounded 由 brainstorming 分档后走各自的短路径。
+
+**executing-plans 于 2026-09-23 恢复**——官方 v6.4.1 将其从 64 行 stub 重建为 **Native 内联执行**（最省的计划执行方式），Lite 借鉴并极简重写（~100 行、0 脚本）。
 
 ---
 
@@ -334,7 +338,7 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 | 💾 | 只标记 TaskUpdate，会话结束进度丢失 | Edit 计划文件 checkbox 实时回写，文件是持久化真相源 |
 | 🔧 | 修复丢上下文 | 新实现者 + 原始任务上下文 + 审查问题清单 |
 | 📋 | 设计/计划审查无效（孤儿文件） | 双审查 + 对照审查，每个审查文件都在工作流中被调用 |
-| 🗑️ | 两套执行路径（subagent + executing） | 单一执行路径，删除 executing-plans |
+| 🛤️ | 两条执行路径但 executing-plans 仅 64 行 stub | 两条路径都实装；Native 内联极简重写（0 脚本），成本对用户透明 |
 | 🏗️ | 代码审查无架构检查 | 新增文件职责/可测试性/结构合规/文件膨胀检查 |
 
 ---
@@ -353,7 +357,7 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 | `implementer-prompt.md` | 🌐 英文，TDD 可选 | 🇨🇳 中文，强制加载 TDD 技能 + 契约约束 + 自审提示 | 🟡 中 |
 | `requesting-code-review/SKILL.md` | 🌐 英文 | 🇨🇳 中文，**整体 code-review** 触发（仅交付物含可执行代码时） | 🔵 小 |
 | `code-reviewer.md` | 🌐 英文 | 🇨🇳 中文，新增架构/文件职责检查点 | 🟡 中 |
-| ~~`executing-plans/SKILL.md`~~ | 🌐 英文（78 行） | ❌ **已删除** | ⚫ 删除 |
+| `executing-plans/SKILL.md` | 🌐 英文（64 行 stub） | 🆕 **新增**：Native 内联执行（本会话亲自实现 + 末尾整体审查，0 脚本） | 🆕 新增 |
 
 ---
 
@@ -369,7 +373,7 @@ git clone https://github.com/Geek-Bob/SuperpowersLite.git
 claude plugins install superpowers@obra
 
 # 用 Lite 技能覆盖官方技能
-cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/
+cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/6.4.1/skills/
 ```
 
 ### 🎬 启动开发
@@ -388,7 +392,7 @@ cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/s
 |:----:|------|------|
 | ① | 📝 **需求梳理** → 输出 Spec | 🛑 等你确认 |
 | ② | 📋 **任务分解** → 输出 Plan | 🛑 等你确认 |
-| ③ | 🤖 **子代理执行** | 全自动（任务间不暂停） |
+| ③ | 🤖 **执行**（SDD 子代理 / Native 内联，二选一） | 全自动（任务间不暂停） |
 | ④ | 👀 **审查门控** | 整体 spec-review（必跑）→ 整体 code-review（仅交付物含可执行代码时，requesting-code-review） |
 | ⑤ | 🏁 **分支收尾** | finishing-a-development-branch |
 
