@@ -36,6 +36,33 @@ Controller 读取 writing-plans 已计算好的「执行分层」表，照表执
 
 分层表异常？退回 writing-plans 重新生成。
 
+## 上下文脚本与产出路径
+
+派发时**只给路径，不给正文**。两个脚本把大体量内容落到文件，从物理上阻断粘贴——不靠模型自觉。
+
+| 脚本 | 输入 | 产出 |
+|------|------|------|
+| `./scripts/task-brief` | 计划文件 + 任务编号 N | `task-N-brief.md`（单个任务全文），stdout 打印绝对路径 |
+| `./scripts/review-package` | 计划文件 + N + BASE + HEAD | `review-N.diff`（commit 列表 + `--stat` + `-U10` 上下文 diff），stdout 打印绝对路径 |
+
+### 产出路径约定
+
+所有产出固定在仓库根的 `.superpowers/sdd/<plan-slug>/` 下，**只放三类文件**：
+
+- `task-N-brief.md` — 单任务全文（`task-brief` 产出）
+- `task-N-report.md` — 实现者完整报告
+- `review-N.diff` — 审查包（`review-package` 产出）
+
+**`plan-slug` 取法：** 计划文件名去扩展名。`docs/superpowers/plans/2026-09-23-foo.md` → `2026-09-23-foo`。
+
+**任务边界：** 计划文件中的 `### Task N:` 行，N 精确匹配（Task 1 不匹配 Task 10）。
+
+**BASE 禁令：** `review-package` 的 BASE 必须是派发前记录的 SHA。**禁止用 `HEAD~1`**——多 commit 任务会被静默丢弃前序 commit 的改动，审查员只看到最后一个 commit，漏审。
+
+### 禁止 ledger / progress.md
+
+**只创建 brief / report / diff 三类文件。** 进度持久化的唯一真相源是计划文件 checkbox（见「进度持久化」）。**禁止**创建 ledger、`progress.md`、逐任务历史记录——那是为应对上下文压缩的状态恢复机制，Lite 用计划文件 checkbox 已解决；再造一份只会制造第二个会不同步的真相源。
+
 ## 阶段 1：逐层并行执行
 
 ```
@@ -70,10 +97,12 @@ Layer 0 → 全部完成 → Layer 1（所有任务并行）→ 全部完成 →
 ### Per Task 流程
 
 ```
-派实现者（新子代理）
+运行 scripts/task-brief <计划文件> N → 得简报路径
+派实现者（新子代理，只传简报路径 + Consumes 契约 + 模块职责）
   → 强制加载 TDD 技能，Red→Green→Refactor
   → 实现者四维自审（完整性/质量/纪律/测试）
-  → 报告：DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+  → 报告全文写入 task-N-report.md
+  → 返回：状态 + commit + 一行测试摘要 + 顾虑
   → Edit 计划文件 checkbox [- → x] → TodoWrite 标记完成
 ```
 
@@ -121,7 +150,7 @@ finishing-a-development-branch
 ### 整体 spec-review（第一关：需求合规）
 
 1. Controller 派发**整体 spec-reviewer 子代理**，模板 `./spec-reviewer-prompt.md`
-2. 提供：SPEC 路径 + Plan 路径 + 任务清单（Produces/Consumes/验收标准）+ 全部实现代码（git diff BASE..HEAD）
+2. 提供：SPEC 路径 + Plan 路径（子代理自读任务清单）+ 审查包路径（`review-package` 产出，**不是 diff 正文**）+ 实现者报告路径
 3. 子代理**按需读取全量代码**，自主定位功能实现完成度
 4. 检查：需求覆盖度 / 任务间一致性 / 范围蔓延 / 需求曲解
 5. ❌ 不通过：派新实现者修复（附整体审查报告 + 指派"修复 Task X 的 Y 问题"）→ 重新派发整体 spec-reviewer（循环直到通过）
@@ -189,6 +218,9 @@ finishing-a-development-branch
 - 不同层的任务并行派发
 - 只在 TodoWrite 标记完成但不回写计划文件 checkbox
 - 整体双审查通过后，继续追加任务
+- 创建 ledger / `progress.md` / 逐任务历史记录
+- 把 diff 内容、报告全文或前序任务摘要粘进主上下文 / 派发 prompt
+- 用 `HEAD~1` 当 `review-package` 的 BASE
 
 ## 处理实现者状态
 
@@ -200,6 +232,31 @@ finishing-a-development-branch
 | BLOCKED | 上下文不足 → 补充后重派。需更强推理 → 升级模型。任务太大 → 拆分。计划问题 → 升级给用户 |
 
 **别忽略升级。别不改变就重试。卡住了就必须改变什么。**
+
+## Rulings（裁决记录）
+
+计划是静态的，执行是动态的。现场偏离计划文本做判断时，记一行 Rulings，让用户能复核判断对错。
+
+### 三个触发时机
+
+| 触发 | 记什么 |
+|------|--------|
+| 审查发现与计划文本冲突 | 冲突点 + 裁决（改计划 / 改实现）+ 理由 |
+| 实现者 BLOCKED 且控制器现场改计划 | 原计划文本 + 改成什么 + 为什么 |
+| 整体审查不通过且裁决某 finding 不成立 | finding + 判不成立的理由 |
+
+Rulings 的**格式契约由 writing-plans 计划模板定义**——本节只定义触发时机。
+
+### 禁止
+
+- 完整 Ledger
+- `progress.md`
+- 逐任务历史记录（每个任务做了什么）
+- 决策之外的流水账（操作日志、命令回放）
+
+只记「偏离计划文本的决策」，一行一条。没有决策 → 不记。
+
+**收尾时：** Rulings 汇总进最终报告，供用户复核判断对错。
 
 ## 模型选择
 
@@ -213,6 +270,8 @@ finishing-a-development-branch
 
 ## Prompt 模板
 
+- `./scripts/task-brief` — 单任务简报落盘（派发只传路径）
+- `./scripts/review-package` — 审查包落盘（commit 列表 + `--stat` + `-U10` diff 三段合一）
 - `./implementer-prompt.md` — 实现者
 - `./spec-reviewer-prompt.md` — 整体规格审查员（按需读取全量代码）
 - `skills/requesting-code-review/code-reviewer.md` — 整体代码审查员（通过 requesting-code-review 技能调用）
@@ -224,7 +283,11 @@ finishing-a-development-branch
 - 别带未修复问题继续
 - 别跨层并行——上层未完成，禁止进入下层
 - 别在同层内串行——同层任务应同时派发，互不等待
-- 别让子代理读计划文件（你提供完整文本）
+- 别让子代理读整个计划文件——只给它 `task-brief` 的简报路径
+- 别把前序任务摘要 / 会话历史 / 整个计划文件正文写进派发 prompt
+- 别把 diff 内容粘进派发 prompt——用 `review-package` 传路径
+- 别用 `HEAD~1` 当 BASE
+- 别创建 ledger / `progress.md` / 逐任务历史记录
 - 别忽略子代理提问
 - 别接受"差不多"的整体审查结果
 - 别用自审替代整体双审查

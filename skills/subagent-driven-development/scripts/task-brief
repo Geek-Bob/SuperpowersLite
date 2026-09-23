@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# 用法：task-brief <计划文件> <任务编号>
+# 把计划中单个任务的全文落盘，只把路径交给子代理——避免控制器粘贴任务文本。
+set -euo pipefail
+
+if [ $# -ne 2 ]; then
+  echo "用法：task-brief <计划文件> <任务编号>" >&2
+  exit 2
+fi
+
+plan=$1
+n=$2
+
+[ -f "$plan" ] || { echo "计划文件不存在：$plan" >&2; exit 1; }
+case "$n" in ''|*[!0-9]*) echo "任务编号必须是正整数：$n" >&2; exit 2 ;; esac
+
+# 任务边界固定为 `### Task N:`；精确匹配（Task 1 ≠ Task 10）靠 N 后的冒号
+awk -v n="$n" '
+  $0 ~ "^### Task " n ":" { found = 1; exit }
+  END { exit(found ? 0 : 1) }
+' "$plan" || { echo "计划中找不到 Task $n（按 '### Task $n:' 精确匹配）" >&2; exit 1; }
+
+# 输出根优先取 git 仓库根，保证路径约定可预测；非仓库目录退化为当前目录
+root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+slug=${plan##*/}
+slug=${slug%.md}
+outdir="$root/.superpowers/sdd/$slug"
+mkdir -p "$outdir"
+out="$outdir/task-$n-brief.md"
+
+# 块 = `### Task N:` 行 → 下一个 `### Task M:` 或二级标题或 EOF；尾部空行与 `---` 分隔符裁掉
+awk -v n="$n" '
+  /^### Task [0-9]+:/ { if (started) exit; if ($0 ~ "^### Task " n ":") started = 1 }
+  started && /^## / && $0 !~ /^### / { exit }
+  started { lines[++c] = $0 }
+  END {
+    while (c > 0 && lines[c] ~ /^[[:space:]]*(-{3})?[[:space:]]*$/) c--
+    for (i = 1; i <= c; i++) print lines[i]
+  }
+' "$plan" > "$out"
+
+printf '%s\n' "$out"

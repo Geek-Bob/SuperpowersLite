@@ -2,6 +2,20 @@
 
 派发**整体**规格合规审查子代理时使用此模板。
 
+## 派发禁令（物理阻断）
+
+**diff 必须以文件路径传递，禁止把 diff 内容粘进派发 prompt。**
+
+| ❌ 禁止 | ✅ 只写 |
+|--------|--------|
+| 把 `git diff` 输出粘进 prompt | 审查包路径（`scripts/review-package` 产出） |
+| 用 `HEAD~1` 当 BASE | 派发前记录的 BASE SHA |
+| 粘贴实现代码全文 | 审查包路径 + 由子代理按需 Read 文件 |
+
+**为什么：** diff 内容进主上下文纯属浪费 token。用 `scripts/review-package <计划文件> N <BASE> <HEAD>` 把 commit 列表 + `--stat` + `-U10` diff 落进一个文件，派发时只传路径，审查员一次 Read 拿全。
+
+**为什么禁 `HEAD~1`：** 多 commit 任务用 `HEAD~1` 当 BASE，会静默丢弃前序 commit 的改动——审查员只看到最后一个 commit，漏审。必须用派发前记录的 BASE SHA。
+
 **目的：** 在**所有任务完成后**，对照 SPEC 和 Plan，验证整个分支的实现是否完整覆盖所有需求、任务间接口是否一致、是否存在范围蔓延。
 
 **核心特性：子代理按需读取全量代码，自行定位功能实现完成度。** 与任务级"按锚点读章节"的局部审查不同，整体审查有完整的全局视角。
@@ -24,19 +38,13 @@ Task 工具 (general-purpose):
     ## 输入
 
     **SPEC 文档：** [SPEC 文件路径]
-    **Plan 文档：** [PLAN 文件路径]
-    **任务清单：**
+    **Plan 文档：** [PLAN 文件路径] —— 自行 Read 该文件，取其「执行分层」表 + 每任务描述 + Produces/Consumes + 验收标准
 
-    ```
-    [粘贴 Plan 中的执行分层表 + 每任务描述 + Produces/Consumes + 验收标准]
-    ```
+    **审查包（实现代码 diff）：** `[运行 scripts/review-package <计划文件> N <BASE> <HEAD> 后 stdout 打印的绝对路径]`
 
-    **实现代码：**
+    审查包内含：commit 列表 + `--stat` 摘要 + `-U10` 上下文 diff。BASE 是派发前记录的 SHA（**不是 `HEAD~1`**）。
 
-    BASE_SHA: [起始 commit]
-    HEAD_SHA: [结束 commit]
-
-    请使用 `git diff BASE..HEAD --stat` 概览改动范围，然后**按需读取全量代码**——分文件精确加载（不是只读 diff），自行定位每个功能的实现完成度。
+    先 Read 审查包拿到改动全景，然后**按需读取全量代码**——分文件精确加载（不是只读 diff），自行定位每个功能的实现完成度。
 
     ## ⚠️ 关键：不要信任实现者报告
 
