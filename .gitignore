@@ -19,3 +19,7 @@ Desktop.ini
 # Superpowers
 .env
 *.local
+.superpowers/
+superpowers-main/
+superpowers-main.zip
+superpowers - 官方副本/
