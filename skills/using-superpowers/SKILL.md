@@ -60,7 +60,7 @@ digraph skill_flow {
     "已完成头脑风暴？" [shape=diamond];
     "调用 brainstorming\n（先分类并宣告路径）" [shape=box];
     "Spike：汇报结论\n（一次性产物，不写文档）" [shape=doublecircle];
-    "Bounded：TDD 直接实现\n+ requesting-code-review" [shape=box, style=filled, fillcolor=lightgrey];
+    "Bounded：Controller 直接实现\n(TDD + requesting-code-review)" [shape=doublecircle, style=filled, fillcolor=lightgrey];
     "Architectural：writing-plans\n↓\nsubagent-driven-development" [shape=box, style=filled, fillcolor=lightgrey];
     "子代理强制加载\nTDD 技能" [shape=box, style=filled, fillcolor=lightgrey];
 
@@ -77,9 +77,8 @@ digraph skill_flow {
     "已完成头脑风暴？" -> "调用 brainstorming\n（先分类并宣告路径）" [label="否"];
     "已完成头脑风暴？" -> "可能适用任何技能？" [label="是"];
     "调用 brainstorming\n（先分类并宣告路径）" -> "Spike：汇报结论\n（一次性产物，不写文档）" [label="Spike"];
-    "调用 brainstorming\n（先分类并宣告路径）" -> "Bounded：TDD 直接实现\n+ requesting-code-review" [label="Bounded"];
+    "调用 brainstorming\n（先分类并宣告路径）" -> "Bounded：Controller 直接实现\n(TDD + requesting-code-review)" [label="Bounded"];
     "调用 brainstorming\n（先分类并宣告路径）" -> "Architectural：writing-plans\n↓\nsubagent-driven-development" [label="Architectural"];
-    "Bounded：TDD 直接实现\n+ requesting-code-review" -> "子代理强制加载\nTDD 技能";
     "Architectural：writing-plans\n↓\nsubagent-driven-development" -> "子代理强制加载\nTDD 技能";
 }
 ```

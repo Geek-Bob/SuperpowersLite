@@ -21,12 +21,9 @@ skills/                          # 所有技能文件（核心产出）
 │   ├── SKILL.md                 #   全中文 + 任务分解 + Produces/Consumes + 自动 DAG 分层 + 子代理全面审查
 │   └── plan-document-reviewer-prompt.md  # 🆕 计划审查模板（含 Produces/Consumes 引用完整性检查）
 ├── subagent-driven-development/ # 🔴 重度改造：执行计划
-│   ├── SKILL.md                 #   全中文 + 整体双审查门控 + 分层并行 + 进度持久化（Edit → TodoWrite）
+│   ├── SKILL.md                 #   全中文 + 审查门控分流 + 指针化派发 + 分层并行 + 进度持久化（Edit → TodoWrite）
 │   ├── implementer-prompt.md    #   全中文 + 强制加载 TDD 技能 + 契约约束 + 自审提示
-│   ├── spec-reviewer-prompt.md  #   全中文 + 整体审查模板（按需读取全量代码，自主定位）
-│   └── scripts/                 #   🆕 上下文物理阻断脚本（bash）
-│       ├── task-brief           #     提取单个任务全文落盘，只把路径交给子代理（阻断派发 prompt 膨胀）
-│       └── review-package       #     commit 列表 + stat + 上下文 diff 落盘，只把路径交给审查员（阻断 diff 进主上下文）
+│   └── spec-reviewer-prompt.md  #   全中文 + 整体审查模板（按需读取全量代码，自主定位）
 ├── test-driven-development/     # 🟡 TDD 技能（来自官方，部分中文化）
 │   ├── SKILL.md                 #   强制 TDD 循环 + 调试集成
 │   └── writing-good-tests.md    #   🆕 写好测试规则（两条原则 + 写前自检 + 变异检查 + 三条反模式）
@@ -88,17 +85,24 @@ brainstorming 分类 ───┼─ Bounded ────────→ TDD 直
 - 子代理：结构质量（完整性/一致性/清晰度）
 - Controller：需求一致性（遗漏/曲解）
 
-### 5. 进度持久化（subagent-driven-development）
-每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TodoWrite 标记。文件是唯一持久化真相源。**所有任务完成后**进入整体双审查门控（整体 spec-review → 整体 code-review）。
+### 5. 进度持久化 + 审查门控分流（subagent-driven-development）
+每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TodoWrite 标记。文件是唯一持久化真相源。**所有任务完成后**进入**审查门控**：需求侧 `spec-review` **永远跑**；质量侧 `code-review` **仅当交付物含可执行代码时跑**，且**只审代码部分**。**纯文档 / 技能任务跳过 code-review**——code-review 的检查项（错误处理、类型安全、Schema 迁移、安全隐患）对技能 Markdown 是无效项。**例外（防一刀切）**：技能 / 文档任务夹带可执行代码（内嵌 bash / node 片段）时，code-review 只审那些代码片段，文档部分仍走 spec-review。
 
 ### 6. 已删除 executing-plans
-官方有两条执行路径（executing-plans + subagent-driven-development），Lite 统一为 subagent-driven-development 单一执行路径。
+官方有两条执行路径（executing-plans + subagent-driven-development），Lite 统一为 subagent-driven-development 单一执行路径（**计划执行阶段**）——Bounded / Spike 不写计划，不经该执行器。
 
 ### 7. 计划文件 Rulings 一行裁决
 writing-plans 在计划文档中固定 `## Rulings` 区，每条裁决一行：`> **Ruling:** <决定了什么> — <为什么> — <错了代价是什么>`。只记录裁决——计划文件的 checkbox 追踪状态，Rulings 只记录裁决，**不引入**完整 Ledger / progress.md / 逐任务流水账。空区即无裁决（不写「无」）。执行完成后最终报告汇总全部 Rulings 供用户复核。
 
-### 8. 上下文物理阻断脚本（subagent-driven-development/scripts）
-两个 bash 脚本把高熵文本落盘、只把路径交给子代理，物理阻断上下文膨胀：`task-brief` 提取单个任务全文，阻断「派发 prompt 膨胀」；`review-package` 把 commit 列表 + stat + 上下文 diff 写成一个文件，阻断「diff 进主上下文」。产出固定落在仓库根 `.superpowers/sdd/<plan-slug>/`。无 `sdd-workspace` 脚本。
+### 8. 上下文物理阻断＝规则，不是脚本
+上下文阻断靠**规则**实现，仓库里**没有任何辅助脚本**：
+
+- **指针化派发**：控制器只传「计划文件路径 + `offset`/`limit` 行号窗口 + 本任务额外约束 + 报告路径」，不粘贴任务全文、会话历史、前序任务摘要、整份计划正文
+- **子代理自行 `git diff`**：审查员与修复者自跑 `git diff --stat BASE..HEAD` 与 `git diff -- <path>`，控制器不代取、不把 diff 正文粘进任何 prompt。BASE 必须是派发前记录的 SHA，禁用 `HEAD~1`
+- **报告契约**：详细内容落 `.superpowers/sdd/<plan-slug>/task-N-report.md`，返回控制器只有「状态 / commit / 一行测试摘要 / 顾虑」四项
+- **行号解析**：派发前 `grep -n "^### Task N:"` 现场解析，不硬编码（进度只翻 checkbox、不增删行，防止行号漂移）
+
+规则优于脚本：不新增维护面，也不引入脚本自身的缺陷（参数解析、行尾 CRLF）。产出路径约定不变——固定落在仓库根 `.superpowers/sdd/<plan-slug>/`。
 
 ## 改造范围
 
@@ -106,7 +110,7 @@ writing-plans 在计划文档中固定 `## Rulings` 区，每条裁决一行：`
 |------|:--------:|------|---------|
 | brainstorming | 🟡 中 | 🇨🇳 | 强制阻断 + **三路径分类（Spike / Bounded / Architectural）** + 图表驱动 + 契约与接口 + 双审查 |
 | writing-plans | 🔴 极大 | 🇨🇳 | 完全重写：代码副本 → 任务分解 + Produces/Consumes + DAG 分层 + Rulings 一行裁决 |
-| subagent-driven-development | 🔴 极大 | 🇨🇳 | 整体双审查门控 + 分层并行执行 + 上下文阻断脚本（task-brief / review-package） |
+| subagent-driven-development | 🔴 极大 | 🇨🇳 | 审查门控分流（spec-review 必跑 / code-review 按交付物）+ 指针化派发 + 分层并行执行 |
 | requesting-code-review | 🔵 小 | 🇨🇳 | 中文化 |
 | executing-plans | ⚫ 删除 | — | 统一执行路径 |
 
