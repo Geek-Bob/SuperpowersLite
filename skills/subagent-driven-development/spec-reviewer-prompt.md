@@ -4,17 +4,19 @@
 
 ## 派发禁令（物理阻断）
 
-**diff 必须以文件路径传递，禁止把 diff 内容粘进派发 prompt。**
+**diff 由子代理自跑，禁止控制器把 diff 内容粘进派发 prompt。**
 
 | ❌ 禁止 | ✅ 只写 |
 |--------|--------|
-| 把 `git diff` 输出粘进 prompt | 审查包路径（`scripts/review-package` 产出） |
+| 把 `git diff` 输出粘进 prompt | 计划文件路径 + BASE/HEAD SHA（子代理自跑 `git diff --stat BASE..HEAD` 后按文件精读） |
 | 用 `HEAD~1` 当 BASE | 派发前记录的 BASE SHA |
-| 粘贴实现代码全文 | 审查包路径 + 由子代理按需 Read 文件 |
+| 粘贴实现代码全文 | 计划文件路径 + 由子代理按需 Read 文件 |
 
-**为什么：** diff 内容进主上下文纯属浪费 token。用 `scripts/review-package <计划文件> N <BASE> <HEAD>` 把 commit 列表 + `--stat` + `-U10` diff 落进一个文件，派发时只传路径，审查员一次 Read 拿全。
+**为什么：** diff 内容进主上下文纯属浪费 token。让子代理自跑 `git diff --stat BASE..HEAD` 看全景、再按文件 `git diff -- <path>` 分批读，控制器只传 BASE/HEAD SHA，不代劳。
 
 **为什么禁 `HEAD~1`：** 多 commit 任务用 `HEAD~1` 当 BASE，会静默丢弃前序 commit 的改动——审查员只看到最后一个 commit，漏审。必须用派发前记录的 BASE SHA。
+
+**通用契约：** 无开场白契约与禁止嵌套派发（定义见 SKILL.md），prompt 正文内已重述。
 
 **目的：** 在**所有任务完成后**，对照 SPEC 和 Plan，验证整个分支的实现是否完整覆盖所有需求、任务间接口是否一致、是否存在范围蔓延。
 
@@ -40,11 +42,12 @@ Task 工具 (general-purpose):
     **SPEC 文档：** [SPEC 文件路径]
     **Plan 文档：** [PLAN 文件路径] —— 自行 Read 该文件，取其「执行分层」表 + 每任务描述 + Produces/Consumes + 验收标准
 
-    **审查包（实现代码 diff）：** `[运行 scripts/review-package <计划文件> N <BASE> <HEAD> 后 stdout 打印的绝对路径]`
+    **BASE SHA：** [派发前记录的 BASE SHA]（**不是 `HEAD~1`**）
+    **HEAD SHA：** [HEAD SHA]
 
-    审查包内含：commit 列表 + `--stat` 摘要 + `-U10` 上下文 diff。BASE 是派发前记录的 SHA（**不是 `HEAD~1`**）。
+    **diff 自跑：** 先 `git diff --stat BASE..HEAD` 看改动全景（改了哪些文件、各多少行），再按文件 `git diff -- <path>` 分批精读（改动超 5 个文件时先看 stat 概览）。
 
-    先 Read 审查包拿到改动全景，然后**按需读取全量代码**——分文件精确加载（不是只读 diff），自行定位每个功能的实现完成度。
+    然后**按需读取全量代码**——分文件精确加载（不是只读 diff），自行定位每个功能的实现完成度。
 
     ## ⚠️ 关键：不要信任实现者报告
 
@@ -125,6 +128,11 @@ Task 工具 (general-purpose):
     - 对未实际阅读的代码给出反馈
     - 模糊不清（"改进一致性"）
     - 回避给出明确结论
+
+    ## 硬约束
+
+    - **无开场白契约：** 第一行直接给结论；每行 = 结论 / 带 `file:line` 的发现 / 跑过的检查；禁止开场白、过程叙述、收尾总结。
+    - **禁止嵌套派发：** 你不得再派任何子代理。需要帮助 → 升级给控制器。
 ```
 
 **审查员返回：** 状态（通过 / 发现问题）+ 问题列表（含 Task 编号 + 验收点引用 + 修复方向）+ 建议

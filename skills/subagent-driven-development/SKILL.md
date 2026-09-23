@@ -36,32 +36,77 @@ Controller 读取 writing-plans 已计算好的「执行分层」表，照表执
 
 分层表异常？退回 writing-plans 重新生成。
 
-## 上下文脚本与产出路径
+## 指针化派发
 
-派发时**只给路径，不给正文**。两个脚本把大体量内容落到文件，从物理上阻断粘贴——不靠模型自觉。
+派发**只给指针，不给正文**。控制器在派发 prompt 里只放四样东西：
 
-| 脚本 | 输入 | 产出 |
-|------|------|------|
-| `./scripts/task-brief` | 计划文件 + 任务编号 N | `task-N-brief.md`（单个任务全文），stdout 打印绝对路径 |
-| `./scripts/review-package` | 计划文件 + N + BASE + HEAD | `review-N.diff`（commit 列表 + `--stat` + `-U10` 上下文 diff），stdout 打印绝对路径 |
+| 组件 | 内容 |
+|------|------|
+| 路径 | 计划文件绝对路径 + 目标文件路径 |
+| 定位 | `offset` / `limit`（行号窗口），或精确章节标题 |
+| 额外约束 | 本任务独有的边界（Auth Scope、禁改文件清单、专用规则） |
+| 报告路径 | `.superpowers/sdd/<plan-slug>/task-N-report.md` |
+
+**禁止写进派发 prompt：** 任务全文粘贴、会话历史回放、前序任务摘要、整份计划文件正文。
+
+**为什么：** 有真实会话的派发 prompt 达 42k 字符，其中 99% 是粘贴的历史。规则管不住粘贴惯性——用行号指针让正文物理上不进上下文，而不是靠模型自觉。
+
+### 行号解析约定
+
+派发前**现场解析**任务行号，**不硬编码**：
+
+```
+grep -n "^### Task N:" <计划文件>
+```
+
+以该行号为起点、下一个 `### Task` 行为终点，据此填 `offset` / `limit`。N 精确匹配——`^### Task 1:` 不会误匹配 `### Task 10:`。
+
+**防行号漂移：** 进度**只翻 checkbox（`- [ ]` → `- [x]`），不增删行**。新增或删除任何行都会让后续任务的 `offset` 失效，指针派发随之错位——这是「只翻 checkbox」的理由，不是格式洁癖。
+
+### diff 获取协议（子代理自跑）
+
+审查员与修复者**自跑 git diff**，控制器不代劳、不粘 diff：
+
+1. `git diff --stat BASE..HEAD` → 先看全景（改了哪些文件、各多少行）
+2. 按文件 `git diff -- <path>` → 分批精读（改动超 5 个文件时，先看 stat 概览再逐个读）
+
+**BASE 禁令：** BASE 必须是派发前记录的 SHA。**禁止用 `HEAD~1`**——多 commit 任务会被静默丢弃前序 commit 的改动，审查员只看到最后一个 commit，漏审。**禁止**控制器把 diff 正文粘进任何 prompt。
 
 ### 产出路径约定
 
-所有产出固定在仓库根的 `.superpowers/sdd/<plan-slug>/` 下，**只放三类文件**：
+所有产出固定在仓库根的 `.superpowers/sdd/<plan-slug>/` 下：
 
-- `task-N-brief.md` — 单任务全文（`task-brief` 产出）
 - `task-N-report.md` — 实现者完整报告
-- `review-N.diff` — 审查包（`review-package` 产出）
+- `review-N-report.md` — 审查员完整报告
 
 **`plan-slug` 取法：** 计划文件名去扩展名。`docs/superpowers/plans/2026-09-23-foo.md` → `2026-09-23-foo`。
 
-**任务边界：** 计划文件中的 `### Task N:` 行，N 精确匹配（Task 1 不匹配 Task 10）。
+### 报告契约
 
-**BASE 禁令：** `review-package` 的 BASE 必须是派发前记录的 SHA。**禁止用 `HEAD~1`**——多 commit 任务会被静默丢弃前序 commit 的改动，审查员只看到最后一个 commit，漏审。
+详细内容**落 report 文件**，返回控制器的**只有四项**：状态 / commit / 一行测试摘要 / 顾虑。**禁止**把报告全文、测试日志、diff 正文贴回控制器。
 
 ### 禁止 ledger / progress.md
 
-**只创建 brief / report / diff 三类文件。** 进度持久化的唯一真相源是计划文件 checkbox（见「进度持久化」）。**禁止**创建 ledger、`progress.md`、逐任务历史记录——那是为应对上下文压缩的状态恢复机制，Lite 用计划文件 checkbox 已解决；再造一份只会制造第二个会不同步的真相源。
+**只创建 report 类文件。** 进度持久化的唯一真相源是计划文件 checkbox（见「进度持久化」）。**禁止**创建 ledger、`progress.md`、逐任务历史记录——那是为应对上下文压缩的状态恢复机制，Lite 用计划文件 checkbox 已解决；再造一份只会制造第二个会不同步的真相源。
+
+## 无开场白契约（实现者与审查员通用）
+
+子代理返回控制器的每一行都必须携带信息。
+
+- **第一行直接给结论**——不写"好的，我来分析一下""让我先看看代码"之类的开场白
+- **每行 = 结论 / 带 `file:line` 的发现 / 跑过的检查**
+- **禁止开场白、过程叙述、收尾总结**（"综上所述""希望这对你有帮助"）
+
+**为什么：** 控制器只读报告。会话叙述、思考碎碎念、礼貌性总结对控制器是零信息、纯 token 浪费。
+
+## 禁止嵌套派发
+
+**实现者与审查员均不得再派子代理。** 控制器是所有派发的唯一入口。
+
+- 实现者遇到无法完成的子问题 → 以 BLOCKED / NEEDS_CONTEXT 上报，由控制器决定下一步
+- 审查员不得派"子审查员"分担审查
+
+**为什么：** 嵌套派发会（1）制造重复审查席位——同一份代码被多个审查员从不同路径评估，结论互相矛盾；（2）让上下文树指数爆炸——每层子代理各持一份全量代码副本，token 成本失控。
 
 ## 阶段 1：逐层并行执行
 
@@ -97,12 +142,12 @@ Layer 0 → 全部完成 → Layer 1（所有任务并行）→ 全部完成 →
 ### Per Task 流程
 
 ```
-运行 scripts/task-brief <计划文件> N → 得简报路径
-派实现者（新子代理，只传简报路径 + Consumes 契约 + 模块职责）
+grep -n "^### Task N:" <计划文件> → 得该任务 offset/limit
+派实现者（新子代理，只传计划文件路径 + offset/limit + Consumes 契约 + 模块职责 + 报告路径）
   → 强制加载 TDD 技能，Red→Green→Refactor
   → 实现者四维自审（完整性/质量/纪律/测试）
   → 报告全文写入 task-N-report.md
-  → 返回：状态 + commit + 一行测试摘要 + 顾虑
+  → 返回：状态 + commit + 一行测试摘要 + 顾虑（无开场白）
   → Edit 计划文件 checkbox [- → x] → TodoWrite 标记完成
 ```
 
@@ -150,7 +195,7 @@ finishing-a-development-branch
 ### 整体 spec-review（第一关：需求合规）
 
 1. Controller 派发**整体 spec-reviewer 子代理**，模板 `./spec-reviewer-prompt.md`
-2. 提供：SPEC 路径 + Plan 路径（子代理自读任务清单）+ 审查包路径（`review-package` 产出，**不是 diff 正文**）+ 实现者报告路径
+2. 提供：SPEC 路径 + Plan 路径（子代理自读任务清单）+ BASE SHA（子代理自跑 git diff）+ 实现者报告路径
 3. 子代理**按需读取全量代码**，自主定位功能实现完成度
 4. 检查：需求覆盖度 / 任务间一致性 / 范围蔓延 / 需求曲解
 5. ❌ 不通过：派新实现者修复（附整体审查报告 + 指派"修复 Task X 的 Y 问题"）→ 重新派发整体 spec-reviewer（循环直到通过）
@@ -176,13 +221,17 @@ finishing-a-development-branch
 
 **spec-review 看"做了什么"，code-review 看"做得怎样"。**
 
-### 修复子代理授权
+### 修复子代理授权（ONE fix dispatch）
+
+**一次审查暴露的全部 finding 打包给同一个修复者，一次派一个**——不按 finding 逐个派发。
 
 派新实现者修复，附带：
 
-- **整体审查报告**（明确问题）
+- **整体审查报告**（列明全部 finding）
 - **被指派 Task 编号**（"修复 Task X 的 Y 问题"）
 - **原始任务描述**
+
+**为什么 ONE：** 每个 finding 单独派一个修复者 → N 倍子代理启动成本 + N 份全量代码上下文重复加载；同一文件的多个 finding 还会互相覆盖。一次派一个，修完再重跑审查。
 
 修复子代理走新子代理。修复完成后**只重跑发现问题的那一道审查**，不重跑另一道，节省 token。
 
@@ -220,7 +269,9 @@ finishing-a-development-branch
 - 整体双审查通过后，继续追加任务
 - 创建 ledger / `progress.md` / 逐任务历史记录
 - 把 diff 内容、报告全文或前序任务摘要粘进主上下文 / 派发 prompt
-- 用 `HEAD~1` 当 `review-package` 的 BASE
+- 把任务全文、会话历史、整份计划文件正文粘进派发 prompt
+- 用 `HEAD~1` 当 git diff 的 BASE
+- 嵌套派发子代理（实现者 / 审查员再派子代理）
 
 ## 处理实现者状态
 
@@ -270,8 +321,6 @@ Rulings 的**格式契约由 writing-plans 计划模板定义**——本节只�
 
 ## Prompt 模板
 
-- `./scripts/task-brief` — 单任务简报落盘（派发只传路径）
-- `./scripts/review-package` — 审查包落盘（commit 列表 + `--stat` + `-U10` diff 三段合一）
 - `./implementer-prompt.md` — 实现者
 - `./spec-reviewer-prompt.md` — 整体规格审查员（按需读取全量代码）
 - `skills/requesting-code-review/code-reviewer.md` — 整体代码审查员（通过 requesting-code-review 技能调用）
@@ -283,10 +332,11 @@ Rulings 的**格式契约由 writing-plans 计划模板定义**——本节只�
 - 别带未修复问题继续
 - 别跨层并行——上层未完成，禁止进入下层
 - 别在同层内串行——同层任务应同时派发，互不等待
-- 别让子代理读整个计划文件——只给它 `task-brief` 的简报路径
+- 别让子代理读整个计划文件——只给它任务章节的 `offset`/`limit`
 - 别把前序任务摘要 / 会话历史 / 整个计划文件正文写进派发 prompt
-- 别把 diff 内容粘进派发 prompt——用 `review-package` 传路径
+- 别把 diff 内容粘进派发 prompt——让子代理自跑 `git diff`
 - 别用 `HEAD~1` 当 BASE
+- 别嵌套派发子代理
 - 别创建 ledger / `progress.md` / 逐任务历史记录
 - 别忽略子代理提问
 - 别接受"差不多"的整体审查结果
