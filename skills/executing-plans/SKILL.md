@@ -77,7 +77,9 @@ grep -n "^### Task N:" <计划文件>
 - 需求侧 `spec-review` **必跑**（模板 `../subagent-driven-development/spec-reviewer-prompt.md`）
 - 质量侧 `code-review` **仅当交付物含可执行代码时跑**，且只审代码部分
 
-BASE 用 `git merge-base origin/main HEAD`。**这是整轮唯一一次买 fresh context——别省，也别用自己读一遍 diff 代替。**
+**审查员用最强模型。** 内联执行省掉了每任务一份 fresh context，这一个审查员就是那双眼——模型档位别省，也别用自己读一遍 diff 代替。
+
+BASE 用 `git merge-base origin/main HEAD`。
 
 - ❌ → 自己修（**你就是这里的实现者**），**一次修完全部 finding**；每个修复由 TDD 验证（写出复现 finding 的测试，看它失败，修到通过，再跑全量套件）→ 重新该侧审查
 - ✅ → `superpowers:finishing-a-development-branch`

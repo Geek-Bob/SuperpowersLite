@@ -15,13 +15,13 @@ Superpowers Lite 是官方 [Superpowers](https://github.com/obra/superpowers) �
 ```
 skills/                          # 所有技能文件（核心产出）
 ├── brainstorming/               # 🔴 重度改造：需求 → 设计文档
-│   ├── SKILL.md                 #   全中文 + 三路径分类 + 强制阻断 + ASCII/Mermaid 双阶段图表 + 契约与接口 + 双审查
+│   ├── SKILL.md                 #   全中文 + 三路径分类 + 强制阻断 + 意图回述 + ASCII/Mermaid 双阶段图表 + 契约与接口 + 自审
 │   ├── diagram-driven-design.md # 🆕 ASCII 框图 + Mermaid 规范（flowchart/sequenceDiagram/stateDiagram/classDiagram）
-│   ├── spec-document-reviewer-prompt.md  # 🆕 结构质量审查模板
+│   ├── spec-document-reviewer-prompt.md  # 结构质量审查模板（仅用户明确要求独立审查时用）
 │   └── visual-companion.md      # 浏览器可视化伴侣（来自官方，未改造）
 ├── writing-plans/               # 🔴 重度改造：设计文档 → 实施计划
-│   ├── SKILL.md                 #   全中文 + 任务分解 + Produces/Consumes + 自动 DAG 分层 + 子代理全面审查
-│   └── plan-document-reviewer-prompt.md  # 🆕 计划审查模板（含 Produces/Consumes 引用完整性检查）
+│   ├── SKILL.md                 #   全中文 + 任务分解 + Produces/Consumes + 自动 DAG 分层 + 自审
+│   └── plan-document-reviewer-prompt.md  # 计划审查模板（仅用户明确要求独立审查时用）
 ├── subagent-driven-development/ # 🔴 重度改造：执行计划
 │   ├── SKILL.md                 #   全中文 + 审查门控分流 + 指针化派发 + 分层并行 + 进度持久化（Edit checkbox → TaskUpdate）
 │   ├── implementer-prompt.md    #   全中文 + 强制加载 TDD 技能 + 契约约束 + 自审提示
@@ -67,7 +67,7 @@ brainstorming 分类 ───┼─ Bounded ────────→ TDD 直
 
 **每条链的交接规则（Architectural 路径）：**
 - brainstorming 终态（书面 spec 已获用户批准）→ 调用 writing-plans（禁止调用其他技能）
-- writing-plans 终态（书面计划已获用户批准）→ 执行交接二选一：`subagent-driven-development`（任务多、接口耦合浅、出错代价高）或 `executing-plans`（任务少、紧耦合、计划够细）
+- writing-plans 终态（书面计划已获用户批准）→ 执行交接二选一：`subagent-driven-development`（要每任务审查门，或计划长到后续任务会在压缩后的上下文里跑）或 `executing-plans`（任务基本独立、不需要每任务审查，**最省**）
 - 所有阶段都有强制用户确认门控（Hard Stop），用户未明确批准不得进入下一阶段
 
 **门控是阶段级授权（全路径适用）：**
@@ -88,9 +88,15 @@ brainstorming 分类 ───┼─ Bounded ────────→ TDD 直
 - 交互阶段（展示设计）：ASCII 框图，快速迭代
 - 文档阶段（写设计文档）：Mermaid 正式图表，嵌入 markdown
 
-### 4. 双审查分工（brainstorming）
-- 子代理：结构质量（完整性/一致性/清晰度）
-- Controller：需求一致性（遗漏/曲解）
+### 4. 文档自审（brainstorming / writing-plans）
+
+设计文档与实施计划**都由 Controller 自己跑清单自审**，不派子代理——官方 `Self-Review` 明写 "not a subagent dispatch"，两个 `*-document-reviewer-prompt.md` 在官方已成刻意孤儿（Lite 曾误判为「孤儿引用」并接回工作流，2026-09-23 二次复核纠正）。
+
+- **结构质量**（完整性 / 一致性 / 清晰度）—— 文档的客观属性，作者视角就能验
+- **需求一致性**（遗漏 / 曲解 / 假设）—— 只有全程在场的人能验
+- **独立视角留给用户门控**（设计文档批准 / 计划批准）—— 那是最后一道，也是最有效的一道
+
+两个 `*-document-reviewer-prompt.md` **保留在仓库中**，供用户明确要求独立审查时使用，默认不派发。
 
 ### 5. 进度持久化 + 审查门控分流（subagent-driven-development）
 每个任务完成后，**先** Edit 计划文件 checkbox（`- [ ]` → `- [x]`），**再** TaskUpdate 标记完成。文件是唯一持久化真相源。**所有任务完成后**进入**审查门控**：需求侧 `spec-review` **永远跑**；质量侧 `code-review` **仅当交付物含可执行代码时跑**，且**只审代码部分**。**纯文档 / 技能任务跳过 code-review**——code-review 的检查项（错误处理、类型安全、Schema 迁移、安全隐患）对技能 Markdown 是无效项。**例外（防一刀切）**：技能 / 文档任务夹带可执行代码（内嵌 bash / node 片段）时，code-review 只审那些代码片段，文档部分仍走 spec-review。
@@ -102,11 +108,13 @@ brainstorming 分类 ───┼─ Bounded ────────→ TDD 直
 | | `subagent-driven-development` | `executing-plans`（Native） |
 |---|---|---|
 | 执行者 | 每任务一个新子代理 | 本会话亲自 |
-| 适用 | 任务多、接口耦合浅、出错代价高 | 任务少、紧耦合、计划够细 |
+| 适用 | 要每任务审查门；或计划长到后续任务会在压缩后的上下文里跑 | 任务基本独立、不需要每任务审查；计划够细 |
 | 成本 | 每任务一次子代理启动 + 从零读库 | 一次会话语境 + 末尾一个审查员 |
-| 审查 | 末尾整体审查门控 | 末尾整体审查门控（完全相同）|
+| 审查 | 末尾整体审查门控 | 末尾整体审查门控，**用最强模型**（整轮唯一一次买独立视角）|
 
-**恢复理由（三条）：**（1）成本阶梯有断层——Bounded 无计划、SDD 最贵，缺「有计划但不派子代理」这一档；（2）官方明说**紧耦合任务不该用 SDD**（同层并行的前提「同层改不同文件」失效，分层退化为串行，只剩成本）；（3）**无子代理工具的平台**（Codex / Copilot / Gemini 不保证有）在 Lite 里原本无路可走。
+**两者的前提相同：任务基本独立。** 分界不是耦合紧不紧——紧耦合时两条路都不适用，该手工执行或先重新 brainstorming。
+
+**恢复理由（三条）：**（1）成本阶梯有断层——Bounded 无计划、SDD 最贵，缺「有计划但不派子代理」这一档；（2）官方明说**紧耦合任务不该走 SDD**，而 Native 与 SDD 共享前提，故分界落在「要不要每任务审查门」与「计划长不长」上；（3）**无子代理工具的平台**（Codex / Copilot / Gemini 不保证有）在 Lite 里原本无路可走。
 
 Bounded / Spike 仍不写计划，不经任何执行器。
 
@@ -127,7 +135,7 @@ writing-plans 在计划文档中固定 `## Rulings` 区，每条裁决一行：`
 
 | 技能 | 改动程度 | 语言 | 核心变化 |
 |------|:--------:|------|---------|
-| brainstorming | 🟡 中 | 🇨🇳 | 强制阻断 + **三路径分类（Spike / Bounded / Architectural）** + 图表驱动 + 契约与接口 + 双审查 |
+| brainstorming | 🟡 中 | 🇨🇳 | 强制阻断 + **三路径分类（Spike / Bounded / Architectural）** + 意图回述 + 图表驱动 + 契约与接口 + 自审 |
 | writing-plans | 🔴 极大 | 🇨🇳 | 完全重写：代码副本 → 任务分解 + Produces/Consumes + DAG 分层 + Rulings 一行裁决 |
 | subagent-driven-development | 🔴 极大 | 🇨🇳 | 审查门控分流（spec-review 必跑 / code-review 按交付物）+ 指针化派发 + 分层并行执行 |
 | requesting-code-review | 🔵 小 | 🇨🇳 | 中文化 |

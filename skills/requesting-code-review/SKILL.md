@@ -12,7 +12,7 @@ description: 在完成任务、实现主要功能或合并之前使用，验证�
 ## 何时请求审查
 
 **必须：**
-- 在 subagent-driven-development 中**所有任务完成后、整体 spec-review 通过后**（即整体双审查门控的第二关）
+- 在 subagent-driven-development 中**所有任务完成后、整体 spec-review 通过后**（即整体审查门控的质量侧）
 - 在完成主要功能后
 - 在合并到 main 之前
 

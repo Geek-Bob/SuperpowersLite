@@ -47,7 +47,7 @@
 
 > 📌 下方全流程图展示的是 **Architectural 路径**（完整链路）。Spike 止步于结论；Bounded 批准短设计后直接 TDD 实现 + `requesting-code-review`——两者都不写 spec、不调用 writing-plans。
 >
-> 🆕 Architectural 的执行阶段**二选一**：`subagent-driven-development`（每任务派子代理，适合任务多、接口耦合浅）或 `executing-plans`（**Native 内联**——本会话亲自逐任务实现，**最省**，适合任务少或紧耦合）。两者共用同一份工作区约定与末尾审查门控。
+> 🆕 Architectural 的执行阶段**二选一**：`subagent-driven-development`（每任务派子代理，适合要每任务审查门、或计划长到会被上下文压缩）或 `executing-plans`（**Native 内联**——本会话亲自逐任务实现，**最省**，适合任务基本独立、不需每任务审查）。两者前提相同（任务基本独立），共用同一份工作区约定与末尾审查门控。
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
@@ -71,15 +71,15 @@
   │      │               └── 🆕 命名约定：所有实现者遵守同一套规则                       │
   │      │               │                                                         │
   │      │               ▼                                                         │
-  │      │       ┌─── 🆕 阶段一：子代理审查（结构质量）───┐                            │
+  │      │       ┌─── 🆕 自审一：结构质量 ────────────────┐                            │
   │      │       │  完整性 / 内部一致性 / 清晰度            │── ❌ ──→ 修复 ──┘        │
-  │      │       │  子代理只读文档本身，发现结构性问题       │                            │
+  │      │       │  自己跑清单，不派子代理                   │                            │
   │      │       └────────────────────────────────────┘                            │
   │      │               │ ✅                                                       │
   │      │               ▼                                                          │
-  │      │       ┌─── 🆕 阶段二：Controller 自审（需求一致性）───┐                     │
+  │      │       ┌─── 🆕 自审二：需求一致性 ──────────────────────┐                    │
   │      │       │  对照原始讨论：需求遗漏？曲解？假设标注？       │                     │
-  │      │       │  Controller 全程参与讨论，能发现子代理看不到的问题│                    │
+  │      │       │  全程在场者才验得出，独立视角留给用户             │                    │
   │      │       └──────────────────────────────────────────┘                     │
   │      │               │                                                         │
   │      ▼               ▼                                                         │
@@ -313,13 +313,13 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 
 ```
 设计文档：子代理(结构) → Controller(需求)
-计划文档：子代理(对照设计文档，需求一致性+结构质量)
+计划文档：自审(对照设计文档，需求一致性+结构质量)
 代码审查：新增架构检查(文件职责/可测试性/结构合规/膨胀检查)
 ```
 
 ### ⑥ 精简统一
 
-修复官方所有孤儿审查文件（spec-document-reviewer-prompt.md、plan-document-reviewer-prompt.md 等从无效引用变为正常工作流环节）。**Architectural 需求**的技能链为 `brainstorming → writing-plans → 执行交接二选一`；Spike / Bounded 由 brainstorming 分档后走各自的短路径。
+文档审查**自审化**——官方 `Self-Review` 明写 "not a subagent dispatch"，两个 `*-document-reviewer-prompt.md` 在官方已成刻意孤儿。Lite 原先把它们当「孤儿引用」接回工作流（等于恢复了 5.1.0 的重流程），2026-09-23 二次复核纠正为**自己跑清单**：结构质量 + 需求一致性各一遍，**独立视角留给用户门控**。两个模板文件保留，仅供用户明确要求独立审查时使用。**Architectural 需求**的技能链为 `brainstorming → writing-plans → 执行交接二选一`；Spike / Bounded 由 brainstorming 分档后走各自的短路径。
 
 **executing-plans 于 2026-09-23 恢复**——官方 v6.4.1 将其从 64 行 stub 重建为 **Native 内联执行**（最省的计划执行方式），Lite 借鉴并极简重写（~100 行、0 脚本）。
 
@@ -337,7 +337,7 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 | 👀 | Controller 自我审查 | **审查门控分流**（spec-review 必跑 + code-review 按交付物），子代理有完整全局观，发现问题更准 |
 | 💾 | 只标记 TaskUpdate，会话结束进度丢失 | Edit 计划文件 checkbox 实时回写，文件是持久化真相源 |
 | 🔧 | 修复丢上下文 | 新实现者 + 原始任务上下文 + 审查问题清单 |
-| 📋 | 设计/计划审查无效（孤儿文件） | 双审查 + 对照审查，每个审查文件都在工作流中被调用 |
+| 📋 | 官方既有自审也有孤儿审查模板 | 文档**自审化**（结构质量 + 需求一致性靠自己跑），独立视角留给用户门控 |
 | 🛤️ | 两条执行路径但 executing-plans 仅 64 行 stub | 两条路径都实装；Native 内联极简重写（0 脚本），成本对用户透明 |
 | 🏗️ | 代码审查无架构检查 | 新增文件职责/可测试性/结构合规/文件膨胀检查 |
 
@@ -347,11 +347,11 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 
 | 文件 | 原始 | 改造后 | 改动程度 |
 |------|------|--------|:--------:|
-| `brainstorming/SKILL.md` | 🌐 英文，建议性门控 | 🇨🇳 中文，强制阻断 + 图表驱动 + 契约与接口 + 双审查 | 🟡 中 |
+| `brainstorming/SKILL.md` | 🌐 英文，建议性门控 | 🇨🇳 中文，强制阻断 + 意图回述 + 图表驱动 + 契约与接口 + 自审 | 🟡 中 |
 | `brainstorming/diagram-driven-design.md` | — | 🆕 **新增**：ASCII 框图 + Mermaid 图表规范（含 classDiagram） | 🟡 中 |
-| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 中文，结构质量审查模板（完整性/一致性/清晰度） | 🟡 中 |
-| `writing-plans/SKILL.md` | 🌐 英文，代码副本生成器 | 🇨🇳 中文，任务分解 + Produces/Consumes + 自动 DAG 分层 + 子代理全面审查 | 🔴 **极大** |
-| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 中文，审查模板（含 Produces/Consumes 引用完整性检查） | 🟡 中 |
+| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 中文，结构质量审查模板（仅用户明确要求独立审查时用） | 🟡 中 |
+| `writing-plans/SKILL.md` | 🌐 英文，代码副本生成器 | 🇨🇳 中文，任务分解 + Produces/Consumes + 自动 DAG 分层 + 自审 | 🔴 **极大** |
+| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 中文，计划审查模板（仅用户明确要求独立审查时用） | 🟡 中 |
 | `subagent-driven-dev/SKILL.md` | 🌐 英文 | 🇨🇳 中文，审查门控分流 + 指针化派发 + 分层并行执行 | 🔴 **极大** |
 | `spec-reviewer-prompt.md` | 🌐 英文 | 🇨🇳 中文，整体审查模板（按需读取全量代码，自主定位功能） | 🟡 中 |
 | `implementer-prompt.md` | 🌐 英文，TDD 可选 | 🇨🇳 中文，强制加载 TDD 技能 + 契约约束 + 自审提示 | 🟡 中 |

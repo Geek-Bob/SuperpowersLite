@@ -47,7 +47,7 @@ Every request is first **triaged** by `brainstorming` into one of three fixed pa
 
 > 📌 The full diagram below is the **Architectural path**. Spike stops at a conclusion; Bounded goes from an approved short design straight to TDD + `requesting-code-review`. Neither writes a spec or invokes writing-plans.
 >
-> 🆕 The Architectural execution stage is a **choice of two**: `subagent-driven-development` (a fresh subagent per task — best when there are many, loosely coupled tasks) or `executing-plans` (**Native inline** — you implement every task in this session, the **cheapest** option, best for few or tightly coupled tasks). Both share the same workspace convention and the same end-of-run review gate.
+> 🆕 The Architectural execution stage is a **choice of two**: `subagent-driven-development` (a fresh subagent per task — best when you want a review gate per task, or the plan is long enough that later tasks run on a compacted context) or `executing-plans` (**Native inline** — you implement every task in this session, the **cheapest** option, best for mostly independent tasks that need no per-task review). Both share the same precondition (tasks mostly independent), the same workspace convention, and the same end-of-run review gate.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
@@ -310,17 +310,17 @@ Context blocking: pointer dispatch (offset/limit only) · subagents run git diff
 
 ### ⑤ Comprehensive Document Review System
 
-Three-tier review贯穿全流程. Design docs: **subagent reviews structural quality** (completeness/consistency/clarity) + **Controller reviews requirement fidelity** (omissions/distortions) — complementary, not redundant. Plan docs: **subagent reviews against design doc** (requirement alignment + Produces/Consumes reference integrity + cycle detection). Code review: **added architecture/file responsibility checkpoints**.
+Reviews throughout the flow. Design docs: **self-review of structural quality** (completeness/consistency/clarity) + **self-review of requirement fidelity** (omissions/distortions), with the independent perspective reserved for the user gate. Plan docs: **self-review against the design doc** (requirement alignment + Produces/Consumes reference integrity + cycle detection). Code review: **added architecture/file responsibility checkpoints**.
 
 ```
-Design doc: subagent(structural) → Controller(requirement fidelity)
-Plan doc: subagent(against design doc, requirement + structural)
+Design doc: self-review(structural) → self-review(requirement fidelity) → user gate
+Plan doc: self-review(against design doc, requirement + structural)
 Code review: added architecture checks (file responsibility/testability/structure/bloat)
 ```
 
 ### ⑥ Streamlined & Unified
 
-Eliminated all orphan review files (spec-document-reviewer-prompt.md, plan-document-reviewer-prompt.md, etc. — from dead references to working workflow steps). The **Architectural** skill chain is `brainstorming → writing-plans → execution handoff (choice of two)`; Spike and Bounded branch off into their own shorter paths after brainstorming triage.
+Document reviews are **self-review now** — official `Self-Review` says plainly "not a subagent dispatch", and the two `*-document-reviewer-prompt.md` files are deliberate orphans upstream. Lite had treated them as "dead references" and wired them back in (restoring the heavier 5.1.0 flow); the 2026-09-23 re-check corrected this to **running the checklist yourself** — structural quality and requirement fidelity each once, with the independent perspective reserved for the user gate. Both templates stay in the repo for when the user explicitly asks for an independent review. The **Architectural** skill chain is `brainstorming → writing-plans → execution handoff (choice of two)`; Spike and Bounded branch off into their own shorter paths after brainstorming triage.
 
 **executing-plans was restored on 2026-09-23** — official v6.4.1 rebuilt it from a 64-line stub into **Native inline execution** (the cheapest way to run a plan), which Lite borrows and rewrites minimally (~100 lines, zero scripts).
 
@@ -338,7 +338,7 @@ Eliminated all orphan review files (spec-document-reviewer-prompt.md, plan-docum
 | 👀 | Controller self-reviews | **Routed review gates** (spec-review always; code-review when the deliverable has executable code), subagent has full global perspective, more accurate findings |
 | 💾 | TaskUpdate only, progress lost on session end | Edit plan file checkbox in real-time, file is persistent source of truth |
 | 🔧 | Fixes lose context | New implementer + original task context + review issue list |
-| 📋 | Design/plan reviews ineffective (orphan files) | Dual review + cross-reference review, every review file is called in workflow |
+| 📋 | Upstream keeps both a self-review step and orphan review templates | Document reviews are **self-review** (structural + requirement fidelity, run by the Controller); the independent perspective is reserved for the user gate |
 | 🛤️ | Two execution paths, but executing-plans is a 64-line stub | Both paths implemented; Native inline rewritten minimally (zero scripts) with transparent cost |
 | 🏗️ | Code review lacks architecture checks | Added file responsibility/testability/structure compliance/bloat checks |
 
@@ -348,11 +348,11 @@ Eliminated all orphan review files (spec-document-reviewer-prompt.md, plan-docum
 
 | File | Original | Lite | Impact |
 |------|----------|------|:------:|
-| `brainstorming/SKILL.md` | 🌐 English, suggestive gate | 🇨🇳 Chinese, mandatory gate + diagram-driven + contract & interfaces + dual review | 🟡 Medium |
+| `brainstorming/SKILL.md` | 🌐 English, suggestive gate | 🇨🇳 Chinese, mandatory gate + intent reflection + diagram-driven + contract & interfaces + self-review | 🟡 Medium |
 | `brainstorming/diagram-driven-design.md` | — | 🆕 **New**: ASCII box + Mermaid diagram specs (incl. classDiagram) | 🟡 Medium |
-| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, structural quality review template (completeness/consistency/clarity) | 🟡 Medium |
-| `writing-plans/SKILL.md` | 🌐 English, code-clone generator | 🇨🇳 Chinese, task decomposition + Produces/Consumes + auto DAG layering + subagent full review | 🔴 **Massive** |
-| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, review template (incl. Produces/Consumes reference integrity check) | 🟡 Medium |
+| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, structural quality review template (independent review only, on request) | 🟡 Medium |
+| `writing-plans/SKILL.md` | 🌐 English, code-clone generator | 🇨🇳 Chinese, task decomposition + Produces/Consumes + auto DAG layering + self-review | 🔴 **Massive** |
+| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, plan review template (independent review only, on request) | 🟡 Medium |
 | `subagent-driven-dev/SKILL.md` | 🌐 English | 🇨🇳 Chinese, routed review gates + pointer dispatch + layered parallel execution | 🔴 **Massive** |
 | `spec-reviewer-prompt.md` | 🌐 English | 🇨🇳 Chinese, overall review template (on-demand full-code reads, self-locate features) | 🟡 Medium |
 | `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD + contracts + self-review hint | 🟡 Medium |
