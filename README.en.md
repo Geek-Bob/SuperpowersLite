@@ -33,9 +33,23 @@
 
 ## 🔄 Full Workflow
 
+### 🔀 Three-Tier Triage
+
+Every request is first **triaged** by `brainstorming` into one of three fixed paths: **Spike** / **Bounded** / **Architectural**. You must say the classification out loud, go heavier when in doubt, and only ever escalate — never downgrade — if hidden complexity surfaces.
+
+| Path | When | Output | Ends at |
+|------|------|--------|---------|
+| **Spike** | A feasibility question ("can we…", "rough is fine") — the output is an **answer**, not code worth keeping | Question + 2-3 sentence probe plan | A conclusion (no doc, no code worth keeping) |
+| **Bounded** | A small change to an **existing workflow** in this repo (a flag, a small endpoint, a single-file fix) | A short design in chat | TDD straight into implementation + requesting-code-review |
+| **Architectural** | New project, new subsystem, assembling a refactor, changing an interface others depend on | Written spec + plan | writing-plans → subagent-driven-development |
+
+> 🎚️ **Gates are stage-scoped:** approval at the conversation level only authorizes writing the spec; approval of the written spec is what unlocks writing-plans. Each reply approves only the stage currently on the table.
+
+> 📌 The full diagram below is the **Architectural path**. Spike stops at a conclusion; Bounded goes from an approved short design straight to TDD + `requesting-code-review`. Neither writes a spec or invokes writing-plans.
+
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
-│                         ⚡ Superpowers Lite Full Workflow                              │
+│               ⚡ Superpowers Lite Full Workflow (Architectural Path)                   │
 │          Contract-First · DAG Layered Parallelism · Enforced TDD · Dual Gates         │
 └──────────────────────────────────────────────────────────────────────────────────────┘
 
@@ -280,9 +294,12 @@ Phase 2: Overall Dual Review Gate
 
 After each task completes, **immediately edit the plan file** checkbox (`- [ ]` → `- [x]`), then TodoWrite. The file is the single persistent source of truth — progress can be recovered from checkbox state even if the session is interrupted. Fixes dispatch a **new implementer + original task context + review issue list** — context is never lost, old paths are never retread.
 
+The plan document also carries a `## Rulings` section for **one-line rulings** on key decisions (`> **Ruling:** <what was decided> — <why> — <cost if wrong>`) — rulings only, no Ledger and no running log. Dispatch and review go through `scripts/task-brief` / `scripts/review-package`: task text and diffs are written to disk and only the path is handed to subagents, **physically blocking context bloat**.
+
 ```
 Edit plan file checkbox (persistent) → TodoWrite (session marker)
 Fix: new subagent + original context + issue list
+Context blocking: task-brief (task text to disk) · review-package (diff to disk)
 ```
 
 ### ⑤ Comprehensive Document Review System
@@ -297,7 +314,7 @@ Code review: added architecture checks (file responsibility/testability/structur
 
 ### ⑥ Streamlined & Unified
 
-Removed the official **executing-plans** skill (two execution paths → single entry). Eliminated all orphan review files (spec-document-reviewer-prompt.md, plan-document-reviewer-prompt.md, etc. — from dead references to working workflow steps). Skill chain unified as `brainstorming → writing-plans → subagent-driven-development`.
+Removed the official **executing-plans** skill (two execution paths → single entry). Eliminated all orphan review files (spec-document-reviewer-prompt.md, plan-document-reviewer-prompt.md, etc. — from dead references to working workflow steps). The **Architectural** skill chain is unified as `brainstorming → writing-plans → subagent-driven-development`; Spike and Bounded branch off into their own shorter paths after brainstorming triage.
 
 ---
 
@@ -354,7 +371,15 @@ cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/s
 
 ### 🎬 Start Developing
 
-Describe your requirements in a Claude Code session, and Claude will automatically invoke the `brainstorming` skill:
+Describe your requirements in a Claude Code session, and Claude will first invoke `brainstorming` to **triage** them, then follow the path it picked:
+
+| Path | Flow | Notes |
+|:----:|------|-------|
+| 🔬 **Spike** | Question + probe plan → conclusion | A nod is enough to start; the output is an answer, no doc written |
+| 🧩 **Bounded** | Short design in chat → 🛑 confirm → TDD + code-review | No spec, no writing-plans |
+| 🏛️ **Architectural** | Full chain (table below) | Written spec + plan, two confirmation gates |
+
+**Architectural path:**
 
 | Phase | Step | Note |
 |:-----:|------|------|

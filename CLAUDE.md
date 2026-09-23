@@ -13,7 +13,7 @@ Superpowers Lite 是官方 [Superpowers](https://github.com/obra/superpowers) (v
 ```
 skills/                          # 所有技能文件（核心产出）
 ├── brainstorming/               # 🔴 重度改造：需求 → 设计文档
-│   ├── SKILL.md                 #   全中文 + 强制阻断 + ASCII/Mermaid 双阶段图表 + 契约与接口 + 双审查
+│   ├── SKILL.md                 #   全中文 + 三路径分类 + 强制阻断 + ASCII/Mermaid 双阶段图表 + 契约与接口 + 双审查
 │   ├── diagram-driven-design.md # 🆕 ASCII 框图 + Mermaid 规范（flowchart/sequenceDiagram/stateDiagram/classDiagram）
 │   ├── spec-document-reviewer-prompt.md  # 🆕 结构质量审查模板
 │   └── visual-companion.md      # 浏览器可视化伴侣（来自官方，未改造）
@@ -23,8 +23,13 @@ skills/                          # 所有技能文件（核心产出）
 ├── subagent-driven-development/ # 🔴 重度改造：执行计划
 │   ├── SKILL.md                 #   全中文 + 整体双审查门控 + 分层并行 + 进度持久化（Edit → TodoWrite）
 │   ├── implementer-prompt.md    #   全中文 + 强制加载 TDD 技能 + 契约约束 + 自审提示
-│   └── spec-reviewer-prompt.md  #   全中文 + 整体审查模板（按需读取全量代码，自主定位）
+│   ├── spec-reviewer-prompt.md  #   全中文 + 整体审查模板（按需读取全量代码，自主定位）
+│   └── scripts/                 #   🆕 上下文物理阻断脚本（bash）
+│       ├── task-brief           #     提取单个任务全文落盘，只把路径交给子代理（阻断派发 prompt 膨胀）
+│       └── review-package       #     commit 列表 + stat + 上下文 diff 落盘，只把路径交给审查员（阻断 diff 进主上下文）
 ├── test-driven-development/     # 🟡 TDD 技能（来自官方，部分中文化）
+│   ├── SKILL.md                 #   强制 TDD 循环 + 调试集成
+│   └── writing-good-tests.md    #   🆕 写好测试规则（两条原则 + 写前自检 + 变异检查 + 三条反模式）
 ├── requesting-code-review/      # 🟡 代码审查技能（全中文）
 ├── finishing-a-development-branch/  # 分支收尾（来自官方）
 ├── systematic-debugging/        # 系统化调试（来自官方）
@@ -38,18 +43,34 @@ skills/                          # 所有技能文件（核心产出）
 README.md / README.en.md          # 中英文 README
 ```
 
-## 核心工作流（三条技能链）
+## 核心工作流（三路径分档）
+
+所有创造性工作先经 `brainstorming` 分类，路径名固定为 **Spike** / **Bounded** / **Architectural**。
 
 ```
-brainstorming → writing-plans → subagent-driven-development
-     📝              📋                    🤖
-  需求梳理          任务分解              子代理执行
+                      ┌─ Spike ──────────→ 汇报结论（一次性产物：不写文档、不留要保留的代码）
+brainstorming 分类 ───┼─ Bounded ────────→ TDD 直接实现 + requesting-code-review（不写 spec、不调用 writing-plans）
+                      └─ Architectural ──→ writing-plans → subagent-driven-development（完整链路）
 ```
 
-**每条链的交接规则：**
-- brainstorming 终态 → 调用 writing-plans（禁止调用其他技能）
-- writing-plans 终态 → 调用 subagent-driven-development（用户确认后）
+| 路径 | 判定条件 | 产出 | 终点 |
+|------|---------|------|------|
+| **Spike** | 可行性问题（"能不能…"、"糙一点没关系"），产出是**答案**而非要保留的代码 | 问题 + 试探方案（2-3 句话） | 汇报结论（不写文档、不留要保留的代码） |
+| **Bounded** | 本仓库**已有流程**的小改动（加 flag、小端点、单文件修复）。判断依据是仓库里已有可直接读的流程——光知道应用类型不算 | 聊天内短设计 | TDD 直接实现 + requesting-code-review |
+| **Architectural** | 新项目、新子系统、重构组件如何拼装、改动他人依赖的接口 | 书面 spec + 书面实施计划 | writing-plans → subagent-driven-development |
+
+**三条硬规则：** 分类必须说出口 / 怀疑时走重的那条 / 中途发现复杂度只升不降。
+
+**每条链的交接规则（Architectural 路径）：**
+- brainstorming 终态（书面 spec 已获用户批准）→ 调用 writing-plans（禁止调用其他技能）
+- writing-plans 终态（书面计划已获用户批准）→ 调用 subagent-driven-development
 - 所有阶段都有强制用户确认门控（Hard Stop），用户未明确批准不得进入下一阶段
+
+**门控是阶段级授权（全路径适用）：**
+- 对话层批准 → 只允许写 spec 文件
+- 书面 spec 批准 → 才允许调用 writing-plans
+- 一次回复只批准**当前正在呈现的那个阶段**，不允许把一个批准变成跳过所选路径其余步骤的许可
+- Spike 以「批准问题与试探方案」为前置条件；Bounded 以「批准聊天内短设计」为前置条件
 
 ## 关键设计决策
 
@@ -73,13 +94,19 @@ brainstorming → writing-plans → subagent-driven-development
 ### 6. 已删除 executing-plans
 官方有两条执行路径（executing-plans + subagent-driven-development），Lite 统一为 subagent-driven-development 单一执行路径。
 
+### 7. 计划文件 Rulings 一行裁决
+writing-plans 在计划文档中固定 `## Rulings` 区，每条裁决一行：`> **Ruling:** <决定了什么> — <为什么> — <错了代价是什么>`。只记录裁决——计划文件的 checkbox 追踪状态，Rulings 只记录裁决，**不引入**完整 Ledger / progress.md / 逐任务流水账。空区即无裁决（不写「无」）。执行完成后最终报告汇总全部 Rulings 供用户复核。
+
+### 8. 上下文物理阻断脚本（subagent-driven-development/scripts）
+两个 bash 脚本把高熵文本落盘、只把路径交给子代理，物理阻断上下文膨胀：`task-brief` 提取单个任务全文，阻断「派发 prompt 膨胀」；`review-package` 把 commit 列表 + stat + 上下文 diff 写成一个文件，阻断「diff 进主上下文」。产出固定落在仓库根 `.superpowers/sdd/<plan-slug>/`。无 `sdd-workspace` 脚本。
+
 ## 改造范围
 
 | 技能 | 改动程度 | 语言 | 核心变化 |
 |------|:--------:|------|---------|
-| brainstorming | 🟡 中 | 🇨🇳 | 强制阻断 + 图表驱动 + 契约与接口 + 双审查 |
-| writing-plans | 🔴 极大 | 🇨🇳 | 完全重写：代码副本 → 任务分解 + Produces/Consumes + DAG 分层 |
-| subagent-driven-development | 🔴 极大 | 🇨🇳 | 整体双审查门控 + 分层并行执行 |
+| brainstorming | 🟡 中 | 🇨🇳 | 强制阻断 + **三路径分类（Spike / Bounded / Architectural）** + 图表驱动 + 契约与接口 + 双审查 |
+| writing-plans | 🔴 极大 | 🇨🇳 | 完全重写：代码副本 → 任务分解 + Produces/Consumes + DAG 分层 + Rulings 一行裁决 |
+| subagent-driven-development | 🔴 极大 | 🇨🇳 | 整体双审查门控 + 分层并行执行 + 上下文阻断脚本（task-brief / review-package） |
 | requesting-code-review | 🔵 小 | 🇨🇳 | 中文化 |
 | executing-plans | ⚫ 删除 | — | 统一执行路径 |
 

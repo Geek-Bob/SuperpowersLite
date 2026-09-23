@@ -58,8 +58,10 @@ digraph skill_flow {
 
     "准备进入实现？" [shape=doublecircle];
     "已完成头脑风暴？" [shape=diamond];
-    "调用 brainstorming" [shape=box];
-    "brainstorming\n↓\nwriting-plans\n↓\nsubagent-driven-\ndevelopment" [shape=box, style=filled, fillcolor=lightgrey];
+    "调用 brainstorming\n（先分类并宣告路径）" [shape=box];
+    "Spike：汇报结论\n（一次性产物，不写文档）" [shape=doublecircle];
+    "Bounded：TDD 直接实现\n+ requesting-code-review" [shape=box, style=filled, fillcolor=lightgrey];
+    "Architectural：writing-plans\n↓\nsubagent-driven-development" [shape=box, style=filled, fillcolor=lightgrey];
     "子代理强制加载\nTDD 技能" [shape=box, style=filled, fillcolor=lightgrey];
 
     "收到用户消息" -> "可能适用任何技能？";
@@ -72,10 +74,13 @@ digraph skill_flow {
     "为每项创建任务" -> "严格遵循技能";
 
     "准备进入实现？" -> "已完成头脑风暴？";
-    "已完成头脑风暴？" -> "调用 brainstorming" [label="否"];
+    "已完成头脑风暴？" -> "调用 brainstorming\n（先分类并宣告路径）" [label="否"];
     "已完成头脑风暴？" -> "可能适用任何技能？" [label="是"];
-    "调用 brainstorming" -> "brainstorming\n↓\nwriting-plans\n↓\nsubagent-driven-\ndevelopment";
-    "brainstorming\n↓\nwriting-plans\n↓\nsubagent-driven-\ndevelopment" -> "子代理强制加载\nTDD 技能";
+    "调用 brainstorming\n（先分类并宣告路径）" -> "Spike：汇报结论\n（一次性产物，不写文档）" [label="Spike"];
+    "调用 brainstorming\n（先分类并宣告路径）" -> "Bounded：TDD 直接实现\n+ requesting-code-review" [label="Bounded"];
+    "调用 brainstorming\n（先分类并宣告路径）" -> "Architectural：writing-plans\n↓\nsubagent-driven-development" [label="Architectural"];
+    "Bounded：TDD 直接实现\n+ requesting-code-review" -> "子代理强制加载\nTDD 技能";
+    "Architectural：writing-plans\n↓\nsubagent-driven-development" -> "子代理强制加载\nTDD 技能";
 }
 ```
 
@@ -105,7 +110,7 @@ digraph skill_flow {
 1. **首先使用流程类技能**（brainstorming、writing-plans、systematic-debugging）— 这些决定如何处理任务
 2. **其次使用实现类技能**（subagent-driven-development、test-driven-development、dispatching-parallel-agents）— 这些指导执行
 
-"让我们构建 X" → brainstorming → writing-plans → subagent-driven-development（子代理强制加载 TDD）。
+"让我们构建 X" → brainstorming 先分类：Spike 直接给结论；Bounded 走 TDD + requesting-code-review；Architectural 走 writing-plans → subagent-driven-development（子代理强制加载 TDD）。
 "修复这个 bug" → systematic-debugging，然后按需使用其他技能。
 
 ## 技能类型

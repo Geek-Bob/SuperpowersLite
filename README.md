@@ -33,9 +33,23 @@
 
 ## 🔄 完整工作流
 
+### 🔀 三路径分档
+
+所有需求先经 `brainstorming` **分类**，路径名固定为 **Spike** / **Bounded** / **Architectural**。分类必须说出口，怀疑时走重的那条，中途发现复杂度只升不降。
+
+| 路径 | 判定 | 产出 | 终点 |
+|------|------|------|------|
+| **Spike** | 可行性问题（"能不能…"、"糙一点没关系"），产出是**答案**而非要保留的代码 | 问题 + 试探方案（2-3 句话） | 汇报结论（不写文档、不留要保留的代码） |
+| **Bounded** | 本仓库**已有流程**的小改动（加 flag、小端点、单文件修复） | 聊天内短设计 | TDD 直接实现 + requesting-code-review |
+| **Architectural** | 新项目、新子系统、重构组件拼装、改他人依赖的接口 | 书面 spec + 计划 | writing-plans → subagent-driven-development |
+
+> 🎚️ **门控是阶段级授权：** 对话层批准 → 只允许写 spec；书面 spec 批准 → 才允许调用 writing-plans；一次回复只批准当前呈现的那个阶段。
+
+> 📌 下方全流程图展示的是 **Architectural 路径**（完整链路）。Spike 止步于结论；Bounded 批准短设计后直接 TDD 实现 + `requesting-code-review`——两者都不写 spec、不调用 writing-plans。
+
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
-│                           ⚡ Superpowers Lite 完整工作流                                │
+│                    ⚡ Superpowers Lite 完整工作流（Architectural 路径）                 │
 │              契约优先 · DAG 分层并行 · 强制 TDD · 双审查门控 · 进度持久化                 │
 └──────────────────────────────────────────────────────────────────────────────────────┘
 
@@ -278,9 +292,12 @@ L0（契约）→ L1（数据层并行）→ L2（业务层并行）→ L3（集
 
 每个任务完成后**立即回写计划文件** checkbox（`- [ ]` → `- [x]`），再 TodoWrite 标记。文件是唯一持久化真相源——会话中断后可从 checkbox 状态恢复进度。修复时派**新实现者 + 附带原始任务上下文 + 审查问题清单**，不丢上下文，不走老路。
 
+计划文档另设 `## Rulings` 区，用**一行式裁决**记录关键决定（`> **Ruling:** <决定了什么> — <为什么> — <错了代价是什么>`）——只记裁决，不引入 Ledger / 流水账。派发与审查走 `scripts/task-brief` / `scripts/review-package`：任务全文与 diff 落盘，只把路径交给子代理，**物理阻断上下文膨胀**。
+
 ```
 Edit 计划文件 checkbox（持久化）→ TodoWrite（会话标记）
 修复：新子代理 + 原始上下文 + 问题清单
+上下文阻断：task-brief（任务全文落盘）· review-package（diff 落盘）
 ```
 
 ### ⑤ 文档全面审查体系
@@ -295,7 +312,7 @@ Edit 计划文件 checkbox（持久化）→ TodoWrite（会话标记）
 
 ### ⑥ 精简统一
 
-删除官方 **executing-plans** 技能（两套执行路径 → 单一入口），删除所有孤儿审查文件（spec-document-reviewer-prompt.md、plan-document-reviewer-prompt.md 等从无效引用变为正常工作流环节）。技能链统一为 `brainstorming → writing-plans → subagent-driven-development`。
+删除官方 **executing-plans** 技能（两套执行路径 → 单一入口），删除所有孤儿审查文件（spec-document-reviewer-prompt.md、plan-document-reviewer-prompt.md 等从无效引用变为正常工作流环节）。**Architectural 需求**的技能链统一为 `brainstorming → writing-plans → subagent-driven-development`；Spike / Bounded 由 brainstorming 分档后走各自的短路径。
 
 ---
 
@@ -352,7 +369,15 @@ cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/s
 
 ### 🎬 启动开发
 
-在 Claude Code 会话中描述你的需求，Claude 会自动调用 `brainstorming` 技能开始需求梳理：
+在 Claude Code 会话中描述你的需求，Claude 会先调用 `brainstorming` **分类**，再按所选路径推进：
+
+| 路径 | 流程 | 说明 |
+|:----:|------|------|
+| 🔬 **Spike** | 问题 + 试探方案 → 结论 | 点头即开工；产出是答案，不写文档 |
+| 🧩 **Bounded** | 聊天短设计 → 🛑 确认 → TDD + code-review | 不写 spec、不调用 writing-plans |
+| 🏛️ **Architectural** | 完整链路（见下表） | 书面 spec + 计划，两个确认门控 |
+
+**Architectural 路径：**
 
 | 阶段 | 步骤 | 说明 |
 |:----:|------|------|
