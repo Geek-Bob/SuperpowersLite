@@ -356,10 +356,10 @@ PASS
 
 ## 测试反模式
 
-加 mock 或测试工具时，阅读 @testing-anti-patterns.md 避免常见陷阱：
-- 测 mock 行为而非真实行为
-- 给生产类加仅供测试的方法
-- 不理解依赖就 mock
+加 mock 或测试工具时，阅读 @writing-good-tests.md 遵守写好测试的规则：
+- 断言 mock 存在
+- 给生产类加测试专用方法
+- 不理解副作用就 mock
 
 ## 最终规则
 
