@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Superpowers Lite 是官方 [Superpowers](https://github.com/obra/superpowers) 的轻量化深度定制版。
 
-**Fork 点：** v5.1.0（2026-04-30）· **当前上游：** v6.4.1（2026-09-18）· 裁决台账见 [`UPSTREAM.md`](UPSTREAM.md)
+**Fork 点：** v5.1.0（2026-04-30）· **当前上游：** v6.4.1（2026-09-19）· **Lite 版本：** `6.4.1-l2` · 裁决台账见 [`UPSTREAM.md`](UPSTREAM.md)
 
 **核心差异：** 计划不再包含实现代码，只包含验收契约。实现者自行 TDD，不走抄代码捷径。**持续跟踪官方上游**——只做优化与简化，每项采纳/拒绝都记入 `UPSTREAM.md`，便于下次增量合并。
 
@@ -39,8 +39,11 @@ skills/                          # 所有技能文件（核心产出）
 ├── using-git-worktrees/         # Git worktree 管理（来自官方）
 └── receiving-code-review/       # 接收代码审查（来自官方）
 
+.claude-plugin/                   # 🆕 插件清单（plugin.json + marketplace.json）—— claude plugin install 安装源
+hooks/                            # 🆕 SessionStart hook 三件（hooks.json + run-hook.cmd + session-start 注入器）
 README.md / README.en.md          # 中英文 README
 UPSTREAM.md                       # 🆕 上游跟踪台账（fork 点、当前上游、逐项裁决 + 原因）
+LICENSE / NOTICE.md               # 🆕 MIT 许可（官方原文）+ 衍生声明
 ```
 
 ## 核心工作流（三路径分档）
@@ -144,6 +147,17 @@ writing-plans 在计划文档中固定 `## Rulings` 区，每条裁决一行：`
 其余技能（test-driven-development、systematic-debugging 等）基本保持官方原样或仅中文化。
 
 ## 安装方式
+
+**方式一：插件市场（推荐）**
+
+```bash
+claude plugin marketplace add https://github.com/Geek-Bob/SuperpowersLite.git
+claude plugin install superpowers@superpowerslite
+```
+
+与官方 superpowers **同名互斥**——装 Lite 前先卸官方（`claude plugin uninstall superpowers`）；升级用 `claude plugin update superpowers`。市场地址必须用完整 HTTPS URL——`Geek-Bob/SuperpowersLite` 简写形式走 SSH clone，未配 host key 的机器会失败。
+
+**方式二：覆盖官方插件（备选，官方底座 + Lite 技能覆盖）**
 
 ```bash
 git clone https://github.com/Geek-Bob/SuperpowersLite.git
