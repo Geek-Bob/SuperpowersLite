@@ -369,7 +369,7 @@ Document reviews are **self-review now** — official `Self-Review` says plainly
 **Option 1: Plugin marketplace (recommended)**
 
 ```bash
-claude plugin marketplace add Geek-Bob/SuperpowersLite
+claude plugin marketplace add https://github.com/Geek-Bob/SuperpowersLite.git
 claude plugin install superpowers@superpowerslite
 ```
 

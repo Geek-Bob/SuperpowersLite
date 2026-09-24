@@ -368,7 +368,7 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 **方式一：插件市场（推荐）**
 
 ```bash
-claude plugin marketplace add Geek-Bob/SuperpowersLite
+claude plugin marketplace add https://github.com/Geek-Bob/SuperpowersLite.git
 claude plugin install superpowers@superpowerslite
 ```
 

@@ -534,6 +534,6 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 - `.gitattributes` 补 `hooks/session-start`、`hooks/run-hook.cmd` 的 LF 保护（无扩展名，`*.sh` 规则罩不住——CRLF 会让 bash 报错）
 - tests/、AGENTS.md、`.codex-plugin` 等多平台清单、`package.json` 仍不接管（超出「中文轻量技能库」的最小必要面）
 
-安装（README 方式一）：`claude plugin marketplace add Geek-Bob/SuperpowersLite` + `claude plugin install superpowers@superpowerslite`；覆盖式安装降为备选（方式二）。
+安装（README 方式一）：`claude plugin marketplace add https://github.com/Geek-Bob/SuperpowersLite.git` + `claude plugin install superpowers@superpowerslite`（**勿用 `Geek-Bob/SuperpowersLite` 简写**——本机实测简写走 SSH clone，未配置 host key 的机器会失败；HTTPS URL 实测通过）；覆盖式安装降为备选（方式二）。
 
 本机实测记录：`claude plugin validate` 通过；本地安装 13 技能 + 1 hook 全部注册（always-on ~443 tok）；**本地路径安装是工作树全量拷贝语义（gitignored 的 superpowers-main 会被带入）——GitHub 源安装走 git clone 不受影响**。部署态盲区①随本次解决（卸官方 5.1.0，本机改装 Lite）。
