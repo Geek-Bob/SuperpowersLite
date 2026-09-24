@@ -181,6 +181,47 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 
 ---
 
+## 上游简化未同步（2026-09-24 复查）
+
+逐技能骨架对比 14 个共同技能 + 官方 6.2.0 campaign 点名清单核对。
+
+### 本轮已执行
+
+**recap / 社会证明段（官方 6.2.0 已删）—— 净省 91 行**
+
+| 技能 | 删除段 | 行数 | 性质 |
+|---|---|---:|---|
+| `receiving-code-review` | `## The Bottom Line` | 8 | 纯 recap |
+| `verification-before-completion` | `## Why This Matters` | 9 | 社会证明 + 恐吓（"If you lie, you'll be replaced"） |
+| `verification-before-completion` | `## The Bottom Line` | 8 | 纯 recap |
+| `systematic-debugging` | `## Real-World Impact` | 8 | 社会证明（95% vs 40%） |
+| `test-driven-development` | `## 为什么顺序重要` | 50 | 官方实测删整节会降级（8/10→5/10），故折进 `Common Rationalizations`；**而 Lite 的 `## 常见合理化` 表已 100% 覆盖这 5 条论证 → 可整删** |
+| `writing-plans` | `## 牢记` | 8 | recap |
+
+**缺陷修复：`using-git-worktrees` 步骤编号断裂**
+
+官方 6.0.0 修过（#1522）。Lite 是 `Step 0 → 1 → 3 → 4`（缺 Step 2），现修正为 `0 → 1 → 2 → 3`，5 处引用同步。
+
+### 本轮未执行（转待办）
+
+**house form 覆盖差异**：官方 8 个技能有 `Common Rationalizations` 表，Lite 只有 3 个（`systematic-debugging` / `test-driven-development` / `writing-skills`）。缺的是：
+
+| 技能 | Lite 现状 |
+|---|---|
+| `requesting-code-review` | 完全缺失 |
+| `finishing-a-development-branch` | `Common Mistakes`(38) + `Red Flags`(22) |
+| `using-git-worktrees` | `Common Mistakes`(27) + `Red Flags`(17) |
+
+> 官方 `requesting-code-review` 的表里有一条关键护栏：「*我自己看 diff 就行，不用派审查员*」→ **你是协调者，inline 审 diff 会烧掉你驱动工作所需的上下文窗口**。这与 Lite「指针化派发」的判据一致，值得补。
+
+### 明确保留
+
+- `requesting-code-review` 的 `## 与工作流的集成`（Lite 独有）——说明自定义审查门控的触发时机，非冗余
+- `subagent-driven-development` / `executing-plans`——Lite 主动重写，不适用「官方简化」判据
+- `writing-skills` 的 `## Real-World Impact (optional)`——官方也有，非残留
+
+---
+
 ## Lite 自身缺陷（二次复核实录）
 
 **记录成因，防止下次同步再写反。**
@@ -231,6 +272,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | **`writing-skills` 第 12 行的技能目录说明** | 官方新版分别列出 Claude Code / Codex / Gemini 的路径与 `~/.agents/skills/` 别名；Lite 是 5.1.0 的旧版（只提 Claude Code + Codex）。中价值（影响个人技能的放置可发现性）|
 | **`dispatching-parallel-agents` 中文化 + 6.x 同步** | 已删 recap 段（182 → 159），但该技能仍是全英文，与其余 13 个技能的语言约定不一致；也未做过 6.x 系统性 diff。另：其 `## Real Example from Session`（26 行英文案例）与「已拒绝」表里 `Example Workflow` 的拒绝理由同类，应一并评估 |
 | **报告契约缺「未解 bug」通道** | 三项摘要里「架构决策」有 Rulings 承接，「未解 bug / 下一步计划」只有模糊的「顾虑」，且「顾虑」没有明确的接收方处理流程。加它会给每次派发 +1~2 行，与判据 2 有张力，故暂缓裁决 |
+| **house form 未对齐（`Common Rationalizations`）** | 官方 8 个技能有此表，Lite 只有 3 个。`requesting-code-review` 完全缺失（含「别自己 inline 审 diff」的护栏）；`finishing-a-development-branch`、`using-git-worktrees` 仍是 `Common Mistakes` + `Red Flags` 两段旧形式，转表可省约 60 行。属结构转换，单独一轮做 |
 
 ---
 
