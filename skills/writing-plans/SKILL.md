@@ -140,11 +140,13 @@ description: 当你有设计文档或多步骤任务的需求时使用，在接�
 - 类型：`IXxx`（如有新定义）— 本任务新定义的类型或接口
 
 **消费（Consumes）：**
-- Task 0：`IUser`、`Result<T>` — Domain 类型（契约定义）
-- Task 0：`IUserService` — 接口签名（本任务实现它）
-- Task 0：`IUserRepository` — 接口签名（注入使用）
+- Task 0：`IUser`、`Result<T>` (@`src/types/domain.ts`) — Domain 类型（契约定义）
+- Task 0：`IUserService` (@`src/services/user-service.ts`) — 接口签名（本任务实现它）
+- Task 0：`IUserRepository` (@`src/repos/user.ts`) — 接口签名（注入使用）
 
 > **Produces/Consumes 用于自动构建依赖图和计算执行分层。** 每个 Consumes 引用必须是精确的 Task 编号。引用不存在的 Task → 计划不合法。声明了 Consumes 但实际没用到 → 审查员会发现。
+>
+> **`(@路径)` 是给下游子代理的指路牌：** 消费该契约时直接 Read 该文件，不必全库 `Grep` 找定义。路径取自该 Task 的 `Produces`（文件）。同一文件的多个接口可合并一行。
 
 **文件：**
 - 创建：`exact/path/to/file.ts`
@@ -174,6 +176,7 @@ description: 当你有设计文档或多步骤任务的需求时使用，在接�
 - "添加适当的错误处理" / "添加校验" / "处理边界情况"（没有具体标准）
 - 需求描述为空或只有一句话
 - Produces 或 Consumes 为空、或 Consumes 引用不存在的 Task 编号
+- Consumes 未附 `(@路径)`——下游子代理会退化为全库 `Grep` 找定义
 - 没有模块职责和 Produces/Consumes 声明
 - 引用未在任何任务中定义的类型、函数或方法
 - 设计文档索引使用占位符（`#<章节>`）或只指向整个文件（`spec.md` 无锚点）

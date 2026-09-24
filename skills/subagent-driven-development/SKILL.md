@@ -169,7 +169,7 @@ Layer 0 → 全部完成 → Layer 1（所有任务并行）→ 全部完成 →
 
 ```
 grep -n "^### Task N:" <计划文件> → 得该任务 offset/limit
-派实现者（新子代理，只传计划文件路径 + offset/limit + Consumes 契约 + 模块职责 + 报告路径）
+派实现者（新子代理，只传计划文件路径 + offset/limit + Consumes 契约及其 `(@路径)` + 模块职责 + 报告路径）
   → 强制加载 TDD 技能，Red→Green→Refactor
   → 实现者四维自审（完整性/质量/纪律/测试）
   → 报告全文写入 task-N-report.md
