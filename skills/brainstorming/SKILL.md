@@ -182,6 +182,7 @@ digraph brainstorming {
 - 提出 2-3 种不同方案，附上权衡分析
 - 以对话方式呈现选项，给出你的推荐和理由
 - 以你的推荐选项为先，并解释原因
+- **严格 YAGNI**——从每个方案和设计里移除不必要的功能
 
 **展示设计：用 ASCII 图澄清**
 
@@ -193,39 +194,7 @@ digraph brainstorming {
 - ASCII 框图追求快速、可改——这是和用户交互的工具，不是最终文档
 - 如果某些内容不合理，随时准备返回去澄清
 
-**ASCII → Mermaid 两阶段图表策略：**
-
-| 阶段 | 工具 | 目的 | 风格 |
-|------|------|------|------|
-| 交互阶段（展示设计） | ASCII 框图 | 和用户边讨论边澄清，快速迭代 | 随手画，可擦改 |
-| 文档阶段（写设计文档） | Mermaid | 嵌入 Spec 正式呈现，可渲染可维护 | 规范完整，嵌入 markdown |
-
-```
-交互阶段示例（快速，即时）：
-┌──────────────┐     ┌──────────────┐
-│   API        │────▶│   用户服务    │
-│   Gateway    │     │   :3001      │
-└──────────────┘     └──────────────┘
-
-文档阶段（正式，可渲染）：
-```mermaid
-flowchart LR
-    A[API Gateway] --> B[用户服务 :3001]
-```
-```
-
-选图规则（两阶段通用）：
-
-| 项目类型 | 交互阶段（ASCII） | 文档阶段（Mermaid） |
-|---------|------------------|-------------------|
-| 🖥️ UI | ASCII 布局原型 | flowchart + stateDiagram |
-| ⚙️ 后端/API | ASCII 架构图 | sequenceDiagram + erDiagram |
-| 🔗 全栈 | ASCII 布局 + ASCII 架构 | flowchart + sequenceDiagram |
-| 📐 契约层（所有项目） | — | classDiagram（类型 + 接口关系） |
-
-怎么摆、怎么连 → ASCII 框图。怎么走、怎么变 → Mermaid。
-
-图表规范、示例和语法参考详见 `skills/brainstorming/diagram-driven-design.md`。
+**ASCII → Mermaid 两阶段图表策略**：交互阶段用 ASCII 框图（随手画、可擦改），写设计文档时转 Mermaid（正式、可渲染）。选图规则、语法与示例见 [diagram-driven-design.md](diagram-driven-design.md)。
 
 **隔离与清晰设计：**
 
@@ -236,7 +205,7 @@ flowchart LR
 
 **契约与接口（强制，并行基础）：**
 
-模块之间的依赖本质上是对"接口/类型/契约"的依赖，而不是对"实现"的依赖。只要契约先定好，消费者和实现者就可以并行开发。
+模块之间的依赖本质上是对"接口/类型/契约"的依赖，而不是对"实现"的依赖。只要契约先定好，消费者和实现者就可以并行开发——**没有契约，writing-plans 无法判断哪些任务能并行**（否则会出现 A 叫 `getUser(id: string)`、B 叫 `getUser(id: number)` 这类冲突）。
 
 Architectural 路径的设计文档必须包含「契约与接口」章节，定义以下内容：
 
@@ -244,40 +213,13 @@ Architectural 路径的设计文档必须包含「契约与接口」章节，定
 
 **2. 模块接口：** 每个模块对外暴露的接口签名。只定义签名，不写实现——实现是计划阶段的事。
 
-| 接口 | 方法签名 | 说明 |
-|------|---------|------|
-| `IUserRepository` | `findById(id: string): Promise<IUser \| null>` | 数据访问 |
-| `IUserService` | `getUser(id: string): Promise<Result<IUser>>` | 业务逻辑 |
-
 **3. 跨端契约（前后端分离项目必填）：** API endpoint、请求/响应格式。
-
-| Endpoint | Method | Request | Response |
-|----------|--------|---------|----------|
-| `/api/users` | GET | — | `Result<IUser[]>` |
-| `/api/users` | POST | `{ name, email }` | `Result<IUser>` |
 
 **4. 命名约定：** 文件命名、类命名、方法命名规则。所有实现者遵守同一套规则。
 
 **5. 数据流图（Mermaid）：** 谁调谁、数据怎么走。用 flowchart 或 sequenceDiagram 表达。
 
-```
-契约与接口用 classDiagram 表达类型和接口关系：
-
-```mermaid
-classDiagram
-    class IUser {
-        +string id
-        +string name
-        +string email
-    }
-    class IUserRepository {
-        +findById(id: string) Promise~IUser~
-    }
-    IUserRepository ..> IUser
-```
-```
-
-> **为什么必须写？** 没有契约，writing-plans 无法判断哪些任务可以并行。有了契约，所有实现者对着同一份接口写代码——不会出现 A 叫 `getUser(id: string)` B 叫 `getUser(id: number)` 的冲突。
+接口表、跨端契约表与 classDiagram 示例见 [diagram-driven-design.md](diagram-driven-design.md)。
 
 **在现有代码库中工作：**
 
@@ -291,8 +233,7 @@ classDiagram
 
 - 将验证过的设计方案写入 `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
   - （用户对设计文档位置的偏好将覆盖此默认值）
-- **交互阶段的 ASCII 框图转化为 Mermaid 正式图表**嵌入文档中
-- **契约与接口用 classDiagram 表达**，嵌入文档中
+- 交互阶段的 ASCII 框图转成 Mermaid 正式图表；契约用 classDiagram 表达（规范与示例见 [diagram-driven-design.md](diagram-driven-design.md)）
 - 如果可用，使用 elements-of-style:writing-clearly-and-concisely 技能
 - 将设计文档提交到 git
 
@@ -332,15 +273,6 @@ classDiagram
 
 - 调用 writing-plans 技能创建详细的实施计划
 - 禁止调用任何其他技能。writing-plans 是下一步。
-
-## 关键原则
-
-- **一次一个问题** — 不要用多个问题让人应接不暇
-- **优先使用选择题** — 在可能的情况下比开放式问题更容易回答
-- **严格遵循 YAGNI** — 从所有设计中移除不必要的功能
-- **探索替代方案** — 在确定之前总是提出 2-3 种方案
-- **增量验证** — 展示设计，在继续之前获得批准
-- **保持灵活** — 当某些内容不合理时，返回去澄清
 
 ## 视觉伴侣
 

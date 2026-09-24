@@ -172,3 +172,19 @@ classDiagram
     IUserService ..> IUser : 返回
     IUserService ..> IUserRepository : 依赖
 ```
+
+## 契约表示例
+
+**模块接口表：**
+
+| 接口 | 方法签名 | 说明 |
+|------|---------|------|
+| `IUserRepository` | `findById(id: string): Promise<IUser \| null>` | 数据访问 |
+| `IUserService` | `getUser(id: string): Promise<Result<IUser>>` | 业务逻辑 |
+
+**跨端契约表（前后端分离项目必填）：**
+
+| Endpoint | Method | Request | Response |
+|----------|--------|---------|----------|
+| `/api/users` | GET | — | `Result<IUser[]>` |
+| `/api/users` | POST | `{ name, email }` | `Result<IUser>` |
