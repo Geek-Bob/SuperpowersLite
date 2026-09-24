@@ -170,8 +170,13 @@ async function retryOperation<T>(
 **强制。跑项目测试命令，不只是你写的那一个文件。**
 
 ```bash
-npm test          # 或 pytest / cargo test / go test ./...
+npm test > /tmp/test.log 2>&1        # 或 pytest / cargo test / go test ./...
+grep -iE "FAIL|ERROR|failed|passed|✓|✗" /tmp/test.log
 ```
+
+**输出重定向——别把整个套件日志读进上下文。** 只把**失败名与汇总行**捞回上下文；需要细节时再 `Read` 日志的对应片段。
+
+> 这不是「少看一眼」——grep 模式必须能捞到**每一个失败的名字**。下面「任何失败都要按名报告」的要求不变，变的只是获取方式。
 
 确认：
 - 你写的测试通过
