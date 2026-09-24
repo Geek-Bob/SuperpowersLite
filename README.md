@@ -365,6 +365,18 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 
 ### 📦 安装
 
+**方式一：插件市场（推荐）**
+
+```bash
+claude plugin marketplace add Geek-Bob/SuperpowersLite
+claude plugin install superpowers@superpowerslite
+```
+
+装完即用：13 技能 + 每会话注入中文 bootstrap（SessionStart hook）。升级用 `claude plugin update superpowers`。
+**与官方 superpowers 同名互斥**——装 Lite 前先卸官方：`claude plugin uninstall superpowers`。
+
+**方式二：覆盖官方插件（备选）**
+
 ```bash
 # 克隆 Lite 仓库
 git clone https://github.com/Geek-Bob/SuperpowersLite.git
@@ -395,7 +407,7 @@ cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
 
 # 校验：bootstrap 含三路径分类（Spike），executing-plans 已就位，且 Lite 已删的官方文件无残留
 grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
-  && grep -q "6.4.1-l1" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && grep -q "6.4.1-l2" "$SP/$VER/skills/using-superpowers/SKILL.md" \
   && ls "$SP/$VER/skills/executing-plans/SKILL.md" \
   && [ ! -e "$SP/$VER/skills/writing-skills" ] \
   && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \

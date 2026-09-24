@@ -173,7 +173,7 @@ cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
 # 校验：正向——bootstrap 必须是仓库里这一份（含三路径分类 Spike/Bounded/Architectural），且 executing-plans 已就位；
 # 反向——Lite 已删的官方文件不得残留（残留 = 删除段没跑到）
 grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
-  && grep -q "6.4.1-l1" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && grep -q "6.4.1-l2" "$SP/$VER/skills/using-superpowers/SKILL.md" \
   && ls "$SP/$VER/skills/executing-plans/SKILL.md" \
   && [ ! -e "$SP/$VER/skills/writing-skills" ] \
   && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \

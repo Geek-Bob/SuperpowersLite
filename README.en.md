@@ -366,6 +366,18 @@ Document reviews are **self-review now** — official `Self-Review` says plainly
 
 ### 📦 Installation
 
+**Option 1: Plugin marketplace (recommended)**
+
+```bash
+claude plugin marketplace add Geek-Bob/SuperpowersLite
+claude plugin install superpowers@superpowerslite
+```
+
+13 skills plus a SessionStart hook injecting the Chinese bootstrap into every session. Upgrade with `claude plugin update superpowers`.
+**Same plugin name as the official superpowers — mutually exclusive**: uninstall the official one first (`claude plugin uninstall superpowers`).
+
+**Option 2: Overlay the official plugin (fallback)**
+
 ```bash
 # Clone the Lite repository
 git clone https://github.com/Geek-Bob/SuperpowersLite.git
@@ -400,7 +412,7 @@ cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
 # Verify: the injected bootstrap carries the triage (Spike), executing-plans is
 # present, and no Lite-deleted official file survived
 grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
-  && grep -q "6.4.1-l1" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && grep -q "6.4.1-l2" "$SP/$VER/skills/using-superpowers/SKILL.md" \
   && ls "$SP/$VER/skills/executing-plans/SKILL.md" \
   && [ ! -e "$SP/$VER/skills/writing-skills" ] \
   && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \

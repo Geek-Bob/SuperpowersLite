@@ -1,2 +1,6 @@
 # Shell 脚本必须始终为 LF：CRLF 会让 `bash x.sh` 报 `\r: command not found`
 *.sh text eol=lf
+
+# hook 脚本无扩展名,*.sh 规则罩不住——CRLF 会让 bash 报错
+hooks/session-start text eol=lf
+hooks/run-hook.cmd text eol=lf

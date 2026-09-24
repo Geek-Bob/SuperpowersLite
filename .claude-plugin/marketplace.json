@@ -1,0 +1,18 @@
+{
+  "name": "superpowerslite",
+  "description": "SuperpowersLite 插件市场 — 官方 superpowers 的中文轻量定制版",
+  "owner": {
+    "name": "Geek-Bob"
+  },
+  "plugins": [
+    {
+      "name": "superpowers",
+      "description": "Superpowers Lite — 官方 superpowers 的中文轻量定制版：契约优先、分层并行、审查门控分流、零脚本",
+      "version": "6.4.1-l2",
+      "source": "./",
+      "author": {
+        "name": "Geek-Bob"
+      }
+    }
+  ]
+}

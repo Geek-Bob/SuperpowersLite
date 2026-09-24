@@ -2,7 +2,7 @@
 
 **Fork 点：** superpowers **v5.1.0**（2026-04-30）
 **当前上游：** superpowers **v6.4.1**（2026-09-19T00:31Z，2026-09-24 v4 联网核实仍为最新；原记 09-18 为美东日期）
-**Lite 版本：** `6.4.1-l1`（2026-09-24 首次发版，git tag `v6.4.1-l1`）
+**Lite 版本：** `6.4.1-l2`（2026-09-24：l1 首次发版=四轮修复+完备性证明；l2=插件市场结构）
 **上次同步：** 2026-09-23（初版 v5.1.0 → v6.4.1）· 2026-09-23（二次复核）
 
 上游每个版本的变更都记在官方 `RELEASE-NOTES.md`（每条约带 PR 编号）。**同步时先读它**，不必重跑全量 diff。
@@ -453,8 +453,8 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | ~~**零产物 vs 每任务证据**~~ — **已解决（2026-09-24 v2 修复，v3 台账补记）** | v2 在 EP 收尾加了「每任务章节内追加证据行」（计划文件内、紧接 checkbox）；SDD 不适用——SDD 有 `task-N-report.md` + RED/GREEN 证据承接。不需要计划文件之外的产物 |
 | **四处「自审」定义是否统一** | brainstorming（结构质量 + 需求一致性）/ writing-plans（5 维）/ SDD（4 维）/ EP（完成契约 4 项）各定义一套清单，维度名互不相同。同一模式四处重述，新增交付物时不知该改哪份 |
 | **8 条纯推理机制是否补实测** | 「Lite 独有」表 11 条自研机制中**仅 1 条有实测**（固定开销判据，来自 `/context`）。其余为纯推理；指针化派发有一个 n=1 无对照的观察（某会话派发 prompt 42k 字符、99% 是粘贴历史）。补实测成本高、收益不明 |
-| **重跑安装覆盖（v3 盲区①）** | 本机注册表实际服务**纯官方 5.1.0**（Spike 针 0 命中、无 executing-plans、writing-skills 存活），会话加载的中文 Lite 来源不在注册表路径——「静默回退」是当下事实非未来风险。按新版安装段（先删后拷）重跑覆盖即可对齐。**动用户环境，时机由用户定** |
-| **官方 skills/ 外运行面（v3 盲区②）** | hooks/session-start（SessionStart 硬注入 bootstrap）、hooks.json + run-hook.cmd、多平台 plugin 清单、tests/、AGENTS.md 等 Lite 从未接管（安装只覆盖 skills/）。**已裁决：不接管**——Lite 定位是技能覆盖层，插件工程面由官方本体提供；官方升级后 hooks 注入文本会随之更新，重跑覆盖即可（README 已警告） |
+| **重跑安装覆盖（v3 盲区①）** | ~~已解决（2026-09-24 l2）~~：卸官方 5.1.0 + 插件市场安装 Lite（superpowers@superpowerslite），部署态对齐 |
+| **官方 skills/ 外运行面（v3 盲区②）** | **2026-09-24 l2 翻转裁决：接管 hooks 层**——定位从「覆盖层」升级为「独立完整插件」，SessionStart 注入不再依赖官方本体提供。plugin.json / marketplace.json / hooks 三件入库；tests/、AGENTS.md、多平台清单仍不接管（见 l2 发版节） |
 | **RELEASE-NOTES 正向映射（v4 盲区⑤）** | 台账是自下而上的发现式记录，无自上而下的完备性证明：官方 RELEASE-NOTES.md（v5.1.0→v6.4.1 全部变更，~100KB）无「每条变更 → 台账裁决位置」的正向映射。非核心技能（systematic-debugging / receiving-code-review / verification-before-completion 等）的静默漏更新正落在这条缝里。独立轮次，工作量中等 |
 | **`.gitignore` 忽略 `docs/` 与技能层契约冲突（v4 盲区①，待用户裁决）** | spec/plan 从此不受版本控制（换机器/克隆/`git clean -fdx` 都会丢计划）；worktree 链路断裂——gitignored 文件不随 checkout 出现在 worktree，指针化派发的计划路径悬空；该裁决未记台账（违反「每项裁决记入台账」契约）。已向用户呈现后果，未获回退指示，现状保持。若保持：建议 spec/plan 改存受控路径，或在技能里注明此约束 |
 
@@ -521,3 +521,19 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | #2089 审查员重读不可读证据而非重跑套件（v6.3.0） | **部分承接** | SDD「无法从 diff 判定」+按需读代码已覆盖主语义；重读 vs 重跑的显式区分不引入（零脚本路线，措辞收益小） | 极端场景下审查员可能多跑一次套件，浪费一次执行；可接受 |
 
 **结论：fork 窗口完备性证明达成——官方 v6.0.0→v6.4.1 的每一条变更都有 Lite 侧裁决，无静默漏项。**
+
+---
+
+## l2：插件市场发布（2026-09-24）
+
+定位变更：**从「覆盖官方的 skills 层」升级为「独立完整插件」**（翻转 v3 盲区②「不接管」裁决——理由：独立插件的 SessionStart 注入是必要件，不再依赖官方本体提供）。仓库新增插件工程面：
+
+- `.claude-plugin/plugin.json` — 插件名 **`superpowers`**（与官方同名互斥：库内几十处 `superpowers:xxx` 技能引用不改前缀，改前缀=全库改动+每次同步多维护一层差异；Lite 语义即「官方替代品」，不能与官方共存）
+- `.claude-plugin/marketplace.json` — 市场名 `superpowerslite`
+- `hooks/` 三件（hooks.json / run-hook.cmd / session-start）— 官方原样拷贝：注入器读 Lite 中文 `skills/using-superpowers/SKILL.md`，直接生效；脚本不含需本地化的语义
+- `.gitattributes` 补 `hooks/session-start`、`hooks/run-hook.cmd` 的 LF 保护（无扩展名，`*.sh` 规则罩不住——CRLF 会让 bash 报错）
+- tests/、AGENTS.md、`.codex-plugin` 等多平台清单、`package.json` 仍不接管（超出「中文轻量技能库」的最小必要面）
+
+安装（README 方式一）：`claude plugin marketplace add Geek-Bob/SuperpowersLite` + `claude plugin install superpowers@superpowerslite`；覆盖式安装降为备选（方式二）。
+
+本机实测记录：`claude plugin validate` 通过；本地安装 13 技能 + 1 hook 全部注册（always-on ~443 tok）；**本地路径安装是工作树全量拷贝语义（gitignored 的 superpowers-main 会被带入）——GitHub 源安装走 git clone 不受影响**。部署态盲区①随本次解决（卸官方 5.1.0，本机改装 Lite）。
