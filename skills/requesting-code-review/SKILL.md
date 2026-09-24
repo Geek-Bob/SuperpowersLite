@@ -25,7 +25,7 @@ description: 在完成任务、实现主要功能或合并之前使用，验证�
 
 **1. 获取 git SHA：**
 ```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # 或 origin/main
+BASE_SHA=$(git merge-base origin/main HEAD)
 HEAD_SHA=$(git rev-parse HEAD)
 ```
 
@@ -83,6 +83,14 @@ HEAD_SHA=$(git rev-parse HEAD)
 - 合并前审查
 - 卡住时审查
 
+## 常见合理化
+
+| 借口 | 现实 |
+|------|------|
+| "我自己看 diff 就行，不用派审查员" | **你是协调者**——inline 审 diff 会烧掉你驱动工作所需的上下文窗口。派审查子代理：diff 与评估在它的上下文里，**只有 finding 回到你这里**。 |
+| "审查员需要我的整段会话历史才能理解改动" | 给它精确构建的上下文，不要给会话历史。这样它盯的是工作产出，不是你的思考过程。 |
+| "这个太简单，不值得审" | 简单改动也会咬人；一次审查的成本远低于一次扩散。 |
+
 ## 红线
 
 **绝对禁止：**
@@ -96,4 +104,4 @@ HEAD_SHA=$(git rev-parse HEAD)
 - 展示证明其正常工作的代码/测试
 - 请求澄清
 
-参见模板：requesting-code-review/code-reviewer.md
+参见模板：[code-reviewer.md](./code-reviewer.md)

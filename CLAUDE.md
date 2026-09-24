@@ -17,8 +17,7 @@ skills/                          # 所有技能文件（核心产出）
 ├── brainstorming/               # 🔴 重度改造：需求 → 设计文档
 │   ├── SKILL.md                 #   全中文 + 三路径分类 + 强制阻断 + 意图回述 + ASCII/Mermaid 双阶段图表 + 契约与接口 + 自审
 │   ├── diagram-driven-design.md # 🆕 ASCII 框图 + Mermaid 规范（flowchart/sequenceDiagram/stateDiagram/classDiagram）
-│   ├── spec-document-reviewer-prompt.md  # 结构质量审查模板（仅用户明确要求独立审查时用）
-│   └── visual-companion.md      # 浏览器可视化伴侣（来自官方，未改造）
+│   └── spec-document-reviewer-prompt.md  # 结构质量审查模板（仅用户明确要求独立审查时用）
 ├── writing-plans/               # 🔴 重度改造：设计文档 → 实施计划
 │   ├── SKILL.md                 #   全中文 + 任务分解 + Produces/Consumes + 自动 DAG 分层 + 自审
 │   └── plan-document-reviewer-prompt.md  # 计划审查模板（仅用户明确要求独立审查时用）
@@ -38,7 +37,6 @@ skills/                          # 所有技能文件（核心产出）
 ├── verification-before-completion/  # 完成前验证（来自官方）
 ├── using-superpowers/           # 技能入口 + 平台适配（全中文）
 ├── using-git-worktrees/         # Git worktree 管理（来自官方）
-├── writing-skills/              # 编写技能指南（来自官方）
 └── receiving-code-review/       # 接收代码审查（来自官方）
 
 README.md / README.en.md          # 中英文 README
@@ -124,7 +122,7 @@ Bounded / Spike 仍不写计划，不经任何执行器。
 writing-plans 在计划文档中固定 `## Rulings` 区，每条裁决一行：`> **Ruling:** <决定了什么> — <为什么> — <错了代价是什么>`。只记录裁决——计划文件的 checkbox 追踪状态，Rulings 只记录裁决，**不引入**完整 Ledger / progress.md / 逐任务流水账。空区即无裁决（不写「无」）。执行完成后最终报告汇总全部 Rulings 供用户复核。
 
 ### 8. 上下文物理阻断＝规则，不是脚本
-上下文阻断靠**规则**实现，仓库里**没有任何辅助脚本**：
+上下文阻断靠**规则**实现，**不依赖任何辅助脚本**：
 
 - **指针化派发**：控制器只传「计划文件路径 + `offset`/`limit` 行号窗口 + 本任务额外约束 + 报告路径」，不粘贴任务全文、会话历史、前序任务摘要、整份计划正文
 - **子代理自行 `git diff`**：审查员与修复者自跑 `git diff --stat BASE..HEAD` 与 `git diff -- <path>`，控制器不代取、不把 diff 正文粘进任何 prompt。BASE 必须是派发前记录的 SHA，禁用 `HEAD~1`；整体审查用 `git merge-base origin/main HEAD`，禁用裸 `origin/main`（会把 main 的新文件显示成幻影删除）
@@ -150,8 +148,39 @@ writing-plans 在计划文档中固定 `## Rulings` 区，每条裁决一行：`
 ```bash
 git clone https://github.com/Geek-Bob/SuperpowersLite.git
 claude plugins install superpowers@obra
-cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/6.4.1/skills/
+
+# 版本目录由插件管理器决定，别写死版本号
+SP="$HOME/.claude/plugins/cache/claude-plugins-official/superpowers"
+VER=$(ls -1 "$SP" | sort -V | tail -1)
+[ -n "$VER" ] || { echo "错误：$SP 不存在或为空"; exit 1; }
+
+# 先删后拷：cp -r 只覆盖同名文件、不删多余文件——Lite 已删除的官方文件（含无鉴权的 server.cjs）会全部残留
+rm -rf "$SP/$VER/skills/writing-skills" \
+       "$SP/$VER/skills/diagnosing-superpowers" \
+       "$SP/$VER/skills/brainstorming/scripts" \
+       "$SP/$VER/skills/brainstorming/visual-companion.md" \
+       "$SP/$VER/skills/subagent-driven-development/scripts" \
+       "$SP/$VER/skills/subagent-driven-development/task-reviewer-prompt.md" \
+       "$SP/$VER/skills/subagent-driven-development/re-review-prompt.md" \
+       "$SP/$VER/skills/executing-plans/scripts" \
+       "$SP/$VER/skills/using-superpowers/references/antigravity-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/claude-code-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/hermes-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/muse-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/pi-tools.md"
+cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
+
+# 校验：正向——bootstrap 必须是仓库里这一份（含三路径分类 Spike/Bounded/Architectural），且 executing-plans 已就位；
+# 反向——Lite 已删的官方文件不得残留（残留 = 删除段没跑到）
+grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && grep -q "6.4.1-l1" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && ls "$SP/$VER/skills/executing-plans/SKILL.md" \
+  && [ ! -e "$SP/$VER/skills/writing-skills" ] \
+  && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \
+  && echo "安装校验通过"
 ```
+
+> **插件升级后必须重跑覆盖。** 官方插件升级会落到**新的版本目录**，Lite 的覆盖层留在旧目录，运行时静默回退成官方原版（英文、无三路径），且不会有任何报错。
 
 ## 语言约定
 

@@ -18,6 +18,8 @@ expect(buildSearchQuery({ tag: 'urgent' })).toBe(expected);        //    恒真�
 expect(buildSearchQuery({ tag: 'urgent' })).toBe('tag:"urgent"');  // ✅ 手写字面量
 ```
 
+**测你的代码，不是框架。** 断言的对象必须是你代码在边界上做出的承诺：你注册的路由、你发出的查询、你产出的载荷。上游机制是上游维护者的测试（经典案例：断言「你的 router 调用了已注册的 handler」——那是框架的测试，不是你的）。上游行为确实出乎意料时，写一个点名的窄「刻画测试」。同一边界也适用于你自己代码的内部：**构造函数、getter、常量、纯转发只有在 validate / normalize / default / derive / enforce / 有副作用 时才配测试**，否则就去断言第一个依赖它们的、消费者可见的结果。
+
 ### 写前自检一（写测试体之前）
 
 ```
@@ -36,6 +38,8 @@ expect(screen.getByTestId('sidebar-mock')).toBeInTheDocument();  // ❌ 测的�
 expect(screen.getByRole('navigation')).toBeInTheDocument();      // ✅ 测真实组件
 ```
 
+**让替身具体。** 参数、调用次数、顺序属于契约时就要断言——**一个什么都接受的假替身什么都没验证**。成功、报错、畸形输入各给一份自己的 fixture 或 spy，这样走错分支也满足不了期望。
+
 ### 写前自检二（加 mock 或测试辅助方法之前）
 
 ```
@@ -44,6 +48,10 @@ expect(screen.getByRole('navigation')).toBeInTheDocument();      // ✅ 测真�
 3. 只被测试调用的方法（如 destroy()/cleanup()）放测试工具类，不进生产类——判据：它是否只被测试调用？这个类是否拥有该资源的生命周期？
 4. mock 设置超过测试逻辑一半 → 改成跑真实组件的集成测试。
 ```
+
+## 测试随实现交付
+
+TDD 循环（失败测试 → 最小实现 → 重构）本身就是「完成」的定义。**只交付行为真正需要的测试**：琐碎代码与给人读的文档一个都不配；为满足流程而写的测试要维护一辈子。
 
 ## 收尾变异检查
 

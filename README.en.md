@@ -71,15 +71,15 @@ Every request is first **triaged** by `brainstorming` into one of three fixed pa
   │      │               └── 🆕 Naming conventions: one rule for all implementers        │
   │      │               │                                                         │
   │      │               ▼                                                         │
-  │      │       ┌─── 🆕 Stage 1: Subagent Review (Structural Quality) ──┐         │
+  │      │       ┌─── 🆕 Pass 1: Self-Review (Structural Quality) ──┐         │
   │      │       │  Completeness / Consistency / Clarity                   │── ❌ → Fix ──┘│
-  │      │       │  Subagent reads only the doc, finds structural issues   │         │
+  │      │       │  Run by the author himself, not a subagent dispatch   │         │
   │      │       └──────────────────────────────────────────────────────┘         │
   │      │               │ ✅                                                       │
   │      │               ▼                                                          │
-  │      │       ┌─── 🆕 Stage 2: Controller Self-Review (Requirement Fidelity) ──┐│
+  │      │       ┌─── 🆕 Pass 2: Author Self-Review (Requirement Fidelity) ──┐│
   │      │       │  Against original discussion: omissions? distortions? assumptions?││
-  │      │       │  Controller was in the discussion — catches what subagent can't  ││
+  │      │       │  Author was in the discussion — catches what outsiders can't  ││
   │      │       └────────────────────────────────────────────────────────────┘    │
   │      │               │                                                         │
   │      ▼               ▼                                                         │
@@ -353,11 +353,11 @@ Document reviews are **self-review now** — official `Self-Review` says plainly
 | `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, structural quality review template (independent review only, on request) | 🟡 Medium |
 | `writing-plans/SKILL.md` | 🌐 English, code-clone generator | 🇨🇳 Chinese, task decomposition + Produces/Consumes + auto DAG layering + self-review | 🔴 **Massive** |
 | `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, plan review template (independent review only, on request) | 🟡 Medium |
-| `subagent-driven-dev/SKILL.md` | 🌐 English | 🇨🇳 Chinese, routed review gates + pointer dispatch + layered parallel execution | 🔴 **Massive** |
-| `spec-reviewer-prompt.md` | 🌐 English | 🇨🇳 Chinese, overall review template (on-demand full-code reads, self-locate features) | 🟡 Medium |
-| `implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD + contracts + self-review hint | 🟡 Medium |
+| `subagent-driven-development/SKILL.md` | 🌐 English | 🇨🇳 Chinese, routed review gates + pointer dispatch + layered parallel execution | 🔴 **Massive** |
+| `subagent-driven-development/spec-reviewer-prompt.md` | 🌐 English | 🇨🇳 Chinese, overall review template (on-demand full-code reads, self-locate features) | 🟡 Medium |
+| `subagent-driven-development/implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD + contracts + self-review hint | 🟡 Medium |
 | `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese, **overall code-review** trigger (only when the deliverable has executable code) | 🔵 Small |
-| `code-reviewer.md` | 🌐 English | 🇨🇳 Chinese, added architecture/file responsibility checks | 🟡 Medium |
+| `requesting-code-review/code-reviewer.md` | 🌐 English | 🇨🇳 Chinese, added architecture/file responsibility checks | 🟡 Medium |
 | `executing-plans/SKILL.md` | 🌐 English (64-line stub) | 🆕 **New**: Native inline execution (implement every task yourself + one whole-branch review, zero scripts) | 🆕 New |
 
 ---
@@ -373,8 +373,41 @@ git clone https://github.com/Geek-Bob/SuperpowersLite.git
 # Register the official plugin (for non-skill files: hooks, config, etc.)
 claude plugins install superpowers@obra
 
-# Overwrite official skills with Lite skills
-cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/6.4.1/skills/
+# Overwrite official skills with Lite skills (the version dir is chosen by the
+# plugin manager — never hard-code it)
+SP="$HOME/.claude/plugins/cache/claude-plugins-official/superpowers"
+VER=$(ls -1 "$SP" | sort -V | tail -1)
+[ -n "$VER" ] || { echo "error: $SP missing or empty"; exit 1; }
+
+# Delete-before-copy: cp -r only overwrites same-name files and never removes
+# extras — every official file Lite deleted (incl. the unauthenticated
+# server.cjs) would otherwise survive the overlay
+rm -rf "$SP/$VER/skills/writing-skills" \
+       "$SP/$VER/skills/diagnosing-superpowers" \
+       "$SP/$VER/skills/brainstorming/scripts" \
+       "$SP/$VER/skills/brainstorming/visual-companion.md" \
+       "$SP/$VER/skills/subagent-driven-development/scripts" \
+       "$SP/$VER/skills/subagent-driven-development/task-reviewer-prompt.md" \
+       "$SP/$VER/skills/subagent-driven-development/re-review-prompt.md" \
+       "$SP/$VER/skills/executing-plans/scripts" \
+       "$SP/$VER/skills/using-superpowers/references/antigravity-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/claude-code-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/hermes-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/muse-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/pi-tools.md"
+cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
+
+# Verify: the injected bootstrap carries the triage (Spike), executing-plans is
+# present, and no Lite-deleted official file survived
+grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && grep -q "6.4.1-l1" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && ls "$SP/$VER/skills/executing-plans/SKILL.md" \
+  && [ ! -e "$SP/$VER/skills/writing-skills" ] \
+  && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \
+  && echo "install verified"
+
+# WARNING: an official plugin upgrade lands in a NEW version dir and silently
+# reverts the overlay. Re-run this whole block after every upgrade.
 ```
 
 ### 🎬 Start Developing

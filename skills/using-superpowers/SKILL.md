@@ -3,6 +3,8 @@ name: using-superpowers
 description: 在开始任何会话时使用 - 建立如何查找和使用技能，要求在生成任何响应（包括澄清问题）之前调用 Skill 工具
 ---
 
+> **Lite 版本：`6.4.1-l1`**（基于上游 superpowers v6.4.1 · 完整裁决台账见仓库 `UPSTREAM.md`）
+
 <SUBAGENT-STOP>
 如果你是作为子代理被派发来执行特定任务，请跳过本技能。
 </SUBAGENT-STOP>

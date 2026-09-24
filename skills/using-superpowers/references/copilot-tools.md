@@ -12,7 +12,7 @@
 | `Glob`（按名称搜索文件） | `glob` |
 | `Skill` 工具（调用技能） | `skill` |
 | `WebFetch` | `web_fetch` |
-| `Task` 工具（分派子代理） | 使用 `agent_type: "general-purpose"` 或 `"explore"` 的 `task` |
+| `Task` 工具（派发子代理） | 使用 `agent_type: "general-purpose"` 或 `"explore"` 的 `task` |
 | 多个 `Task` 调用（并行） | 多个 `task` 调用 |
 | 任务状态/输出 | `read_agent`、`list_agents` |
 | `TaskCreate` / `TaskUpdate`（任务跟踪） | 使用内置 `todos` 表的 `sql` |

@@ -7,7 +7,7 @@
 | `Task` 工具（派发子代理） | `spawn_agent`（参见[子代理派发需要多代理支持](#子代理派发需要多代理支持)） |
 | 多个 `Task` 调用（并行） | 多个 `spawn_agent` 调用 |
 | Task 返回结果 | `wait_agent` |
-| Task 自动完成 | `close_agent` 释放槽位 |
+| Task 自动完成 | V2 **无需显式关闭**——子代理完成即释放；仅 V1 会话有 `close_agent` |
 | `TaskCreate` / `TaskUpdate`（任务跟踪） | `update_plan` |
 | `Skill` 工具（调用技能） | 技能原生加载——直接遵循指令即可 |
 | `Read`、`Write`、`Edit`（文件） | 使用你的原生文件工具 |
@@ -22,7 +22,9 @@
 multi_agent = true
 ```
 
-此配置启用 `spawn_agent`、`wait_agent` 和 `close_agent`，用于 `dispatching-parallel-agents` 和 `subagent-driven-development` 等技能。
+此配置启用 `spawn_agent` 与 `wait_agent`，用于 `dispatching-parallel-agents` 和 `subagent-driven-development` 等技能。
+
+**V2 没有 `close_agent`。** 完成的子代理自行释放，关闭动作不产生任何开销；只有 **V1** 会话才有 `close_agent`。
 
 遗留说明：`rust-v0.115.0` 之前的 Codex 构建版本将派生子代理的等待暴露为 `wait`。当前 Codex 对派生子代理使用 `wait_agent`。`wait` 名称现在归属于代码模式的 `exec/wait`，用于通过 `cell_id` 恢复一个已挂起的执行单元；它不是派生子代理的结果工具。
 

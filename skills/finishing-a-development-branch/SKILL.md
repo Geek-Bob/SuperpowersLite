@@ -44,6 +44,9 @@ Stop. Don't proceed to Step 2.
 ```bash
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
 GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+# Capture now, while still inside the workspace — Step 5 changes directory
+# before cleanup (Step 6) needs this value.
+WORKTREE_PATH=$(git rev-parse --show-toplevel)
 ```
 
 This determines which menu to show and how cleanup works:
@@ -112,6 +115,8 @@ git merge <feature-branch>
 # Only after merge succeeds: cleanup worktree (Step 6), then delete branch
 ```
 
+**合并结果测试失败就停手。** 保留 worktree 与分支原地不动，排查——此时**什么都还没 push**，merge 是本地的、可恢复的。
+
 Then: Cleanup worktree (Step 6), then delete branch:
 
 ```bash
@@ -123,6 +128,9 @@ git branch -d <feature-branch>
 ```bash
 # Push branch
 git push -u origin <feature-branch>
+# From a detached HEAD there is no <feature-branch> to name. Name the new
+# branch on the remote instead:
+#   git push origin HEAD:refs/heads/<new-branch>
 
 # Create PR
 gh pr create --title "<title>" --body "$(cat <<'EOF'
@@ -173,14 +181,14 @@ git branch -D <feature-branch>
 **Only runs for Option 1 and 用户要求丢弃.** Options 2 and 3 always preserve the worktree.
 
 ```bash
-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
-WORKTREE_PATH=$(git rev-parse --show-toplevel)
+# Reuse GIT_DIR / GIT_COMMON / WORKTREE_PATH captured in Step 2, from before
+# Step 5 changed directory. Recomputing `--show-toplevel` here would yield the
+# main repo root, making GIT_DIR == GIT_COMMON match and silently no-op cleanup.
 ```
 
 **If `GIT_DIR == GIT_COMMON`:** Normal repo, no worktree to clean up. Done.
 
-**If worktree path is under `.worktrees/`, `worktrees/`, or `~/.config/superpowers/worktrees/`:** Superpowers created this worktree — we own cleanup.
+**If worktree path is under `.worktrees/`, `worktrees/`:** Superpowers created this worktree — we own cleanup.
 
 ```bash
 MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
@@ -242,7 +250,7 @@ Which?
 
 **Cleaning up harness-owned worktrees**
 - **Problem:** Removing a worktree the harness created causes phantom state
-- **Fix:** Only clean up worktrees under `.worktrees/`, `worktrees/`, or `~/.config/superpowers/worktrees/`
+- **Fix:** Only clean up worktrees under `.worktrees/`, `worktrees/`
 
 **No confirmation for discard**
 - **Problem:** Accidentally delete work
@@ -263,6 +271,7 @@ Which?
 - Merge without verifying tests on result
 - Delete work without confirmation
 - Force-push without explicit request
+- 把「push 被拒」当成 force-push 的理由——**被拒意味着远端已前进**，先 `git fetch` 查清了差什么再说
 - Remove a worktree before confirming merge success
 - Clean up worktrees you didn't create (provenance check)
 - Run `git worktree remove` from inside the worktree

@@ -309,10 +309,10 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 
 ### ⑤ 文档全面审查体系
 
-三级审查贯穿全流程。设计文档：**子代理审结构质量**（完整性/一致性/清晰度）+ **Controller 审需求一致性**（遗漏/曲解），两者互补不重复。计划文档：**子代理对照设计文档全面审查**（需求对齐 + Produces/Consumes 引用完整性 + 循环依赖检测）。代码审查：新增**架构/文件职责检查点**。
+审查贯穿全流程。设计文档与计划文档都由**作者自己跑清单自审**（2026-09-23 纠正——官方 `Self-Review` 明写 "not a subagent dispatch"，两个审查模板在官方已是刻意孤儿）：结构质量（完整性/一致性/清晰度）+ 需求一致性（遗漏/曲解）各一遍，**独立视角留给用户门控**，模板仅供用户明确要求独立审查时使用。代码审查：新增**架构/文件职责检查点**。
 
 ```
-设计文档：子代理(结构) → Controller(需求)
+设计文档：自审(结构质量 + 需求一致性)
 计划文档：自审(对照设计文档，需求一致性+结构质量)
 代码审查：新增架构检查(文件职责/可测试性/结构合规/膨胀检查)
 ```
@@ -352,11 +352,11 @@ Edit 计划文件 checkbox（持久化）→ TaskUpdate（会话标记）
 | `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 中文，结构质量审查模板（仅用户明确要求独立审查时用） | 🟡 中 |
 | `writing-plans/SKILL.md` | 🌐 英文，代码副本生成器 | 🇨🇳 中文，任务分解 + Produces/Consumes + 自动 DAG 分层 + 自审 | 🔴 **极大** |
 | `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 中文，计划审查模板（仅用户明确要求独立审查时用） | 🟡 中 |
-| `subagent-driven-dev/SKILL.md` | 🌐 英文 | 🇨🇳 中文，审查门控分流 + 指针化派发 + 分层并行执行 | 🔴 **极大** |
-| `spec-reviewer-prompt.md` | 🌐 英文 | 🇨🇳 中文，整体审查模板（按需读取全量代码，自主定位功能） | 🟡 中 |
-| `implementer-prompt.md` | 🌐 英文，TDD 可选 | 🇨🇳 中文，强制加载 TDD 技能 + 契约约束 + 自审提示 | 🟡 中 |
+| `subagent-driven-development/SKILL.md` | 🌐 英文 | 🇨🇳 中文，审查门控分流 + 指针化派发 + 分层并行执行 | 🔴 **极大** |
+| `subagent-driven-development/spec-reviewer-prompt.md` | 🌐 英文 | 🇨🇳 中文，整体审查模板（按需读取全量代码，自主定位功能） | 🟡 中 |
+| `subagent-driven-development/implementer-prompt.md` | 🌐 英文，TDD 可选 | 🇨🇳 中文，强制加载 TDD 技能 + 契约约束 + 自审提示 | 🟡 中 |
 | `requesting-code-review/SKILL.md` | 🌐 英文 | 🇨🇳 中文，**整体 code-review** 触发（仅交付物含可执行代码时） | 🔵 小 |
-| `code-reviewer.md` | 🌐 英文 | 🇨🇳 中文，新增架构/文件职责检查点 | 🟡 中 |
+| `requesting-code-review/code-reviewer.md` | 🌐 英文 | 🇨🇳 中文，新增架构/文件职责检查点 | 🟡 中 |
 | `executing-plans/SKILL.md` | 🌐 英文（64 行 stub） | 🆕 **新增**：Native 内联执行（本会话亲自实现 + 末尾整体审查，0 脚本） | 🆕 新增 |
 
 ---
@@ -372,8 +372,36 @@ git clone https://github.com/Geek-Bob/SuperpowersLite.git
 # 注册官方插件（获取非技能文件：hooks、配置等）
 claude plugins install superpowers@obra
 
-# 用 Lite 技能覆盖官方技能
-cp -r SuperpowersLite/skills/* ~/.claude/plugins/cache/claude-plugins-official/superpowers/6.4.1/skills/
+# 用 Lite 技能覆盖官方技能（版本目录由插件管理器决定，别写死）
+SP="$HOME/.claude/plugins/cache/claude-plugins-official/superpowers"
+VER=$(ls -1 "$SP" | sort -V | tail -1)
+[ -n "$VER" ] || { echo "错误：$SP 不存在或为空"; exit 1; }
+
+# 先删后拷：cp -r 只覆盖同名文件、不删多余文件——Lite 已删的官方文件（含无鉴权的 server.cjs）会全部残留
+rm -rf "$SP/$VER/skills/writing-skills" \
+       "$SP/$VER/skills/diagnosing-superpowers" \
+       "$SP/$VER/skills/brainstorming/scripts" \
+       "$SP/$VER/skills/brainstorming/visual-companion.md" \
+       "$SP/$VER/skills/subagent-driven-development/scripts" \
+       "$SP/$VER/skills/subagent-driven-development/task-reviewer-prompt.md" \
+       "$SP/$VER/skills/subagent-driven-development/re-review-prompt.md" \
+       "$SP/$VER/skills/executing-plans/scripts" \
+       "$SP/$VER/skills/using-superpowers/references/antigravity-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/claude-code-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/hermes-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/muse-tools.md" \
+       "$SP/$VER/skills/using-superpowers/references/pi-tools.md"
+cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
+
+# 校验：bootstrap 含三路径分类（Spike），executing-plans 已就位，且 Lite 已删的官方文件无残留
+grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && grep -q "6.4.1-l1" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && ls "$SP/$VER/skills/executing-plans/SKILL.md" \
+  && [ ! -e "$SP/$VER/skills/writing-skills" ] \
+  && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \
+  && echo "安装校验通过"
+
+# ⚠️ 官方插件升级会落到新版本目录，必须重跑本段覆盖，否则运行时静默回退成官方原版
 ```
 
 ### 🎬 启动开发
