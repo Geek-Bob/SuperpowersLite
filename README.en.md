@@ -22,18 +22,51 @@
 
 ## 📖 Table of Contents
 
-- [🔄 Full Workflow](#-full-workflow)
-- [⚡ Six Key Innovations](#-six-key-innovations)
-- [📋 Quick Comparison vs Official](#-quick-comparison-vs-official)
-- [📂 Skill File Index](#-skill-file-index)
-- [🚀 Getting Started](#-getting-started)
+- [💡 Why Lite](#-why-lite)
+- [🚀 Quick Start](#-quick-start)
+- [🔄 Workflow](#-workflow-three-tier-triage)
+- [📋 Differences vs Official](#-differences-vs-official)
+- [📂 Skill Inventory](#-skill-inventory)
+- [🔧 Alternative: Overlay Install](#-alternative-overlay-install)
 - [📜 License](#-license)
 
 ---
 
-## 🔄 Full Workflow
+## 💡 Why Lite
 
-### 🔀 Three-Tier Triage
+Four keywords sum up the differences from upstream: **Contract-First · Layered Parallelism · Routed Review Gates · Fully Chinese**.
+
+- **Plans are acceptance contracts, not code clones** — implementers do real TDD (Red → Green → Refactor), no copy-paste shortcut
+- **Produces / Consumes auto DAG layering** — same-layer tasks run in parallel, cross-layer serial, no waiting
+- **Review gates routed by deliverable** — spec-review always runs; code-review only when the deliverable contains executable code. Cheap and accurate
+- **Zero helper scripts** — context blocking by rules (pointer dispatch + subagents run git diff themselves), no script-borne defects
+
+---
+
+## 🚀 Quick Start
+
+**Uninstall the official superpowers first** (same plugin name — mutually exclusive):
+
+```bash
+claude plugin uninstall superpowers
+```
+
+**Two-step install:**
+
+```bash
+claude plugin marketplace add https://github.com/Geek-Bob/SuperpowersLite.git
+claude plugin install superpowers@superpowerslite
+```
+
+Works out of the box: 13 skills + a Chinese bootstrap injected into every session (SessionStart hook). Upgrade with `claude plugin update superpowers`.
+
+**Verify it worked:** `claude plugin list` shows `superpowers@superpowerslite` (enabled); a new session opens with the Chinese superpowers bootstrap; when you describe a request, Claude announces its triage (Spike / Bounded / Architectural) before starting.
+
+> The marketplace address must be the full HTTPS URL — the `Geek-Bob/SuperpowersLite` shorthand goes through SSH clone and fails on machines without a configured host key. To keep the official plugin as the base, see the [overlay alternative](#-alternative-overlay-install) at the end.
+
+---
+
+## 🔄 Workflow: Three-Tier Triage
 
 Every request is first **triaged** by `brainstorming` into one of three fixed paths: **Spike** / **Bounded** / **Architectural**. You must say the classification out loud, go heavier when in doubt, and only ever escalate — never downgrade — if hidden complexity surfaces.
 
@@ -41,292 +74,41 @@ Every request is first **triaged** by `brainstorming` into one of three fixed pa
 |------|------|--------|---------|
 | **Spike** | A feasibility question ("can we…", "rough is fine") — the output is an **answer**, not code worth keeping | Question + 2-3 sentence probe plan | A conclusion (no doc, no code worth keeping) |
 | **Bounded** | A small change to an **existing workflow** in this repo (a flag, a small endpoint, a single-file fix) | A short design in chat | TDD straight into implementation + requesting-code-review |
-| **Architectural** | New project, new subsystem, assembling a refactor, changing an interface others depend on | Written spec + plan | writing-plans → SDD or Native inline (either) |
+| **Architectural** | New project, new subsystem, assembling a refactor, changing an interface others depend on | Written spec + plan | writing-plans → execution (either of two) |
 
-> 🎚️ **Gates are stage-scoped:** approval at the conversation level only authorizes writing the spec; approval of the written spec is what unlocks writing-plans. Each reply approves only the stage currently on the table.
+> 🎚️ **Gates are stage-scoped:** approval at the conversation level only authorizes writing the spec; approval of the written spec is what unlocks writing-plans. Each reply approves only the stage currently on the table. Every 🛑 in the flow waits for the user's nod.
 
-> 📌 The full diagram below is the **Architectural path**. Spike stops at a conclusion; Bounded goes from an approved short design straight to TDD + `requesting-code-review`. Neither writes a spec or invokes writing-plans.
->
-> 🆕 The Architectural execution stage is a **choice of two**: `subagent-driven-development` (a fresh subagent per task — best when you want a review gate per task, or the plan is long enough that later tasks run on a compacted context) or `executing-plans` (**Native inline** — you implement every task in this session, the **cheapest** option, best for mostly independent tasks that need no per-task review). Both share the same precondition (tasks mostly independent), the same workspace convention, and the same end-of-run review gate.
-
+```mermaid
+flowchart TD
+    R["Request"] --> B{"brainstorming triage<br/>(say it out loud)"}
+    B -->|"Feasibility question"| SP["Spike: report a conclusion<br/>no doc, no code kept"]
+    B -->|"Small change to existing workflow"| BD["Bounded: short design in chat<br/>🛑 confirm → TDD + code-review"]
+    B -->|"New project / new subsystem /<br/>interface others depend on"| AR["Architectural"]
+    AR --> WP["writing-plans<br/>contract-first + DAG layering"]
+    WP --> G1["🛑 approve plan"]
+    G1 -->|"Long plan / per-task review gate"| SDD["SDD: subagent per task<br/>layered parallel execution"]
+    G1 -->|"Mostly independent, cheapest"| NAT["Native inline: this session<br/>implements every task"]
+    SDD --> GATE{"Review gate"}
+    NAT --> GATE
+    GATE --> FIN["finishing: branch wrap-up"]
 ```
-┌──────────────────────────────────────────────────────────────────────────────────────┐
-│               ⚡ Superpowers Lite Full Workflow (Architectural Path)                   │
-│          Contract-First · DAG Layered Parallelism · Enforced TDD · Routed Gates       │
-└──────────────────────────────────────────────────────────────────────────────────────┘
 
-  ┌─ ① brainstorming 📝 (Requirements) ────────────────────────────────────────────┐
-  │                                                                                  │
-  │  Explore context → Clarifying questions → Propose 2-3 solutions                   │
-  │      │                                                                           │
-  │      ▼                                                                           │
-  │  🆕 ASCII diagrams for discussion ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐  │
-  │      │  Sketch architecture, data flow, layouts — user sees and discusses   │  │
-  │      │  Interactive: ASCII (fast iteration) → Document: Mermaid (formal)     │  │
-  │      ▼                                                                       │  │
-  │  Section-by-section design → Write design doc → git commit                       │
-  │      │               │                                                         │
-  │      │               ├── 🆕 Mermaid diagrams (flowchart/sequence/state/class)       │
-  │      │               ├── 🆕 Contract & Interfaces: shared types + module APIs + endpoints│
-  │      │               └── 🆕 Naming conventions: one rule for all implementers        │
-  │      │               │                                                         │
-  │      │               ▼                                                         │
-  │      │       ┌─── 🆕 Pass 1: Self-Review (Structural Quality) ──┐         │
-  │      │       │  Completeness / Consistency / Clarity                   │── ❌ → Fix ──┘│
-  │      │       │  Run by the author himself, not a subagent dispatch   │         │
-  │      │       └──────────────────────────────────────────────────────┘         │
-  │      │               │ ✅                                                       │
-  │      │               ▼                                                          │
-  │      │       ┌─── 🆕 Pass 2: Author Self-Review (Requirement Fidelity) ──┐│
-  │      │       │  Against original discussion: omissions? distortions? assumptions?││
-  │      │       │  Author was in the discussion — catches what outsiders can't  ││
-  │      │       └────────────────────────────────────────────────────────────┘    │
-  │      │               │                                                         │
-  │      ▼               ▼                                                         │
-  │  🛑 User Confirmation Gate (HARD STOP)                                           │
-  │  "Please review this design document. Any changes needed?"                       │
-  │      │                                                                          │
-  │      │ ✅ User confirms                                                          │
-  └──────┼──────────────────────────────────────────────────────────────────────────┘
-         │
-         ▼
-  ┌─ ② writing-plans 📋 (Task Decomposition) ──────────────────────────────────────┐
-  │                                                                                  │
-  │  Read design doc → Plan file structure → Decompose into independently TDD-able tasks│
-  │      │                                                                           │
-  │      ▼                                                                           │
-  │  🆕 Each task = acceptance contract (no implementation code)                       │
-  │  ┌────────────────────────────────────────────────────────────────────┐         │
-  │  │ Task N: [Goal] + Spec Reference (precise section anchor) + description│       │
-  │  │ Produces: files / modules / types (what this task outputs)           │         │
-  │  │ Consumes: Task 0 : IUser, IUserRepository (contracts this task needs)│        │
-  │  │ Acceptance Criteria: - [ ] checkbox list (quality contract)          │         │
-  │  │ Steps: 1.Write tests 2.Verify fail 3.Implement 4.Verify pass 5.Commit│        │
-  │  └────────────────────────────────────────────────────────────────────┘         │
-  │      │                                                                           │
-  │      ▼                                                                           │
-  │  🆕 Produces / Consumes → Auto DAG Topological Sort → Execution Layer Table       │
-  │  ┌────────────────────────────────────────────────────────────────────┐         │
-  │  │ 1. Collect all Produces and Consumes                                 │         │
-  │  │ 2. Build dependency graph: B.Consumes references A.Produces → A → B  │         │
-  │  │ 3. Detect cycles → cycle found = plan invalid                        │         │
-  │  │ 4. Topological sort → natural layers: L0(indeg=0) → L1 → ... → Ln   │         │
-  │  │ 5. Same-layer tasks: different files + no mutual Consumes → safe parallel│     │
-  │  └────────────────────────────────────────────────────────────────────┘         │
-  │      │                                                                           │
-  │      ▼                                                                           │
-  │  Output execution layer table:                                                    │
-  │  ┌────────────────────────────────────────────────────────────────────┐         │
-  │  │  Layer │  Task                │  Deps       │  Parallel              │         │
-  │  │  :──:  │  ─────               │  ────       │  :──:                  │         │
-  │  │  L0   │  Task 0: Contracts    │  None       │  —                     │         │
-  │  │  L1   │  Task 1: UserRepo    │  Task 0     │  ✅                    │         │
-  │  │  L1   │  Task 2: OrderRepo   │  Task 0     │  ✅ (same-layer para)  │         │
-  │  │  L1   │  Task 3: Logger      │  Task 0     │  ✅                    │         │
-  │  │  L2   │  Task 4: UserSvc     │  Task 0,1   │  ✅                    │         │
-  │  │  L2   │  Task 5: OrderSvc    │  Task 0,2   │  ✅                    │         │
-  │  │  L3   │  Task 6: DI + Routes │  Task 4,5   │  —                     │         │
-  │  └────────────────────────────────────────────────────────────────────┘         │
-  │      │                                                                           │
-  │      ▼                                                                           │
-  │  🆕 Subagent full review (against design doc: requirement fidelity + structural) → ❌ → Fix → ✅│
-  │      │                                                                           │
-  │      ▼                                                                           │
-  │  🛑 User Confirmation Gate (HARD STOP)                                            │
-  │  "Please review this plan. Is the decomposition reasonable? Criteria complete?"   │
-  │      │                                                                           │
-  │      │ ✅ User confirms                                                            │
-  └──────┼──────────────────────────────────────────────────────────────────────────┘
-         │
-         ▼
-  ┌─ ③ subagent-driven-development 🤖 (Execution) ──────────────────────────────────┐
-  │                                                                                  │
-  │  🆕 Controller Role: Pure Coordinator                                             │
-  │  ┌────────────────────────────────────────────────────────────────────┐         │
-  │  │ 🚫 No code review · 🚫 No code fixes · ✅ Read reports only          │         │
-  │  │ ✅ Decide next step · ✅ Coordinate layer progression                │         │
-  │  └────────────────────────────────────────────────────────────────────┘         │
-  │                                                                                  │
-  │  ┌─ Phase 0: Read Execution Layer Table ──────────────────────────────┐         │
-  │  │ Pre-computed by writing-plans via DAG. Controller reads, no re-analysis│      │
-  │  └────────────────────────────────────────────────────────────────────┘         │
-  │      │                                                                           │
-  │      ▼                                                                           │
-  │  ┌─ Phase 1: Execute Layer by Layer, Parallel Within Layer ─────────┐          │
-  │  │                                                                    │          │
-  │  │  🆕 Task level: self-review, no reviewer                           │          │
-  │  │  ┌──────────────────────────────────────────────────────────┐    │          │
-  │  │  │ ①Contracts ②Enforced TDD ③Self-review                      │    │          │
-  │  │  │ Implementer self-reviews and marks done — no per-task review│    │          │
-  │  │  └──────────────────────────────────────────────────────────┘    │          │
-  │  │                                                                    │          │
-  │  │  Layer 0 ──────────────────── all done ────────────────────────▶   │          │
-  │  │    │                                                               │          │
-  │  │    ▼                                                               │          │
-  │  │  Layer 1 ┌─ Task A ─ Impl(TDD) → self-review → commit → [x] ─┐    │          │
-  │  │          ├─ Task B ─ Impl(TDD) → self-review → commit → [x] ─┤    │          │
-  │  │          └─ Task C ─ Impl(TDD) → self-review → commit → [x] ─┘    │          │
-  │  │    │     ↑ Dispatched together (different files + shared contract) ↑│          │
-  │  │    │     ↑ One fails → new implementer fix (others continue)       │          │
-  │  │    │                                                               │          │
-  │  │    ▼ all done                                                      │          │
-  │  │  Layer 2 ┌─ Task D ─ Impl(TDD) → self-review → commit → [x] ─┐    │          │
-  │  │          └─ Task E ─ Impl(TDD) → self-review → commit → [x] ─┘    │          │
-  │  │    │                                                               │          │
-  │  │    ▼ ...until all layers done                                       │          │
-  │  │                                                                    │          │
-  │  │  🚫 Cross-layer must be serial: upper layer all done → next layer   │          │
-  │  │  🚫 File conflicts resolved by layer table: same-layer = different files│       │
-  │  └────────────────────────────────────────────────────────────────────┘          │
-  │                                                                                  │
-  │  ┌─ Per-Task Flow ────────────────────────────────────────────────┐          │
-  │  │                                                                    │          │
-  │  │  ┌─── Dispatch Implementer (new subagent) ────────────────────┐   │          │
-  │  │  │                                                              │   │          │
-  │  │  │  🆕 Enforced TDD loading:                                     │   │          │
-  │  │  │     Skill("superpowers:test-driven-development")             │   │          │
-  │  │  │     Red (failing test) → Green (minimal impl) → Refactor     │   │          │
-  │  │  │                                                              │   │          │
-  │  │  │  🆕 Contract constraint: only use interfaces/types in Consumes│   │          │
-  │  │  │     Need undeclared type? → Report NEEDS_CONTEXT, don't invent│   │          │
-  │  │  │                                                              │   │          │
-  │  │  │  Commit + 4-axis self-review (completeness/quality/discipline/tests)│   │          │
-  │  │  │  Report: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT  │   │          │
-  │  │  └──────────────────────────────────────────────────────────────┘   │          │
-  │  │    │                                                               │          │
-  │  │    ▼                                                               │          │
-  │  │  🆕 Progress Persistence (mandatory, executed immediately per task) │          │
-  │  │  ┌────────────────────────────────────────────────────────────┐   │          │
-  │  │  │ ① Edit plan file checkbox: - [ ] → - [x]                    │   │          │
-  │  │  │    File is the single persistent source of truth             │   │          │
-  │  │  │ ② TaskUpdate mark complete                                   │   │          │
-  │  │  │    Edit MUST precede TaskUpdate                               │   │          │
-  │  │  └────────────────────────────────────────────────────────────┘   │          │
-  │  └────────────────────────────────────────────────────────────────────┘          │
-  │                                                                                  │
-  │  ┌─ Phase 2: 🆕 Routed Review Gates (spec always; code when present) ┐          │
-  │  │                                                                    │          │
-  │  │  🆕 Overall review gate = full requirement map + all implementation │       │
-  │  │  ┌──────────────────────────────────────────────────────────┐    │          │
-  │  │  │ Accurate (global perspective) and cheap (only reviews needed)│   │          │
-  │  │  └──────────────────────────────────────────────────────────┘    │          │
-  │  │                                                                    │          │
-  │  │  ┌─ Overall spec-review (always runs) ────────────────────┐      │          │
-  │  │  │  Dispatch overall spec-reviewer (new subagent)              │      │          │
-  │  │  │  Input: SPEC + Plan task list + all code (on-demand reads)  │      │          │
-  │  │  │  Check: coverage / inter-task consistency / scope creep / misinterpret│  │          │
-  │  │  │       │                                                │      │          │
-  │  │  │       ├─ ❌ → New implementer (with review + Task assignment) │      │          │
-  │  │  │       │      → Re-run overall spec-review (loop until pass) │      │          │
-  │  │  │       ▼                                                │      │          │
-  │  │  │     ✅                                                │      │          │
-  │  │  └────────────────────────────────────────────────────────┘      │          │
-  │  │  │                                                                │          │
-  │  │  ┌─ Overall code-review (only executable code = requesting-code-review)┐│          │
-  │  │  │  Controller calls Skill("superpowers:requesting-code-review")  ││          │
-  │  │  │  Dispatch code-reviewer (new subagent, BASE_SHA ~ HEAD_SHA full diff)││          │
-  │  │  │  🆕 Added architecture checks: file responsibility clarity,  ││          │
-  │  │  │     unit testability, structure compliance, file bloat check  ││          │
-  │  │  │       │                                                │      │          │
-  │  │  │       ├─ ❌ → New implementer (with review + Task assignment) │      │          │
-  │  │  │       │      → Re-run overall code-review (loop until pass)  │      │          │
-  │  │  │       ▼                                                │      │          │
-  │  │  │     ✅                                                │      │          │
-  │  │  └────────────────────────────────────────────────────────┘      │          │
-  │  └────────────────────────────────────────────────────────────────────┘          │
-  │                                                                                  │
-  │  🚫 Absolutely Forbidden                                                           │
-  │  ┌────────────────────────────────────────────────────────────────────┐         │
-  │  │ Controller self-review · Controller fixes code · Per-task independent review│
-  │  │ Skip mandatory review · Cross-layer parallel · Same-layer serial · Fix without context│
-  │  │ TaskUpdate without file update · spec ❌ still enter code · code ❌ still mark done│
-  │  └────────────────────────────────────────────────────────────────────┘         │
-  └──────┬───────────────────────────────────────────────────────────────────────────┘
-         │ Review gate passed
-         ▼
-  ┌─ ④ finishing-a-development-branch 🏁 (Wrap-up) ─────────────────────────────────┐
-  │  Verify → Merge → Clean up                                                         │
-  └──────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    GATE{"Review gate"} --> SR["Overall spec-review<br/>(requirement side: always)"]
+    SR -->|"❌ fix subagent, re-run"| SR
+    SR -->|"✅"| CD{"Deliverable has<br/>executable code?"}
+    CD -->|"No (pure docs / skills)"| FIN2["finishing: branch wrap-up"]
+    CD -->|"Yes"| CR["Overall code-review<br/>(code portion only)"]
+    CR -->|"❌ fix subagent, re-run"| CR
+    CR -->|"✅"| FIN2
 ```
+
+Task-level details (per-task flow, progress persistence, forbidden actions) live in the corresponding skill files under `skills/`.
 
 ---
 
-## ⚡ Six Key Innovations
-
-### ① Contract-First + Diagram-Driven Design
-
-Interfaces are locked down during the design phase. **ASCII diagrams** rapidly clarify architecture and data flow during interactive discussion — users see and discuss immediately. Once confirmed, they're converted to **Mermaid formal diagrams** embedded in the design document. Every design document requires a **"Contracts & Interfaces"** chapter: shared types, module APIs, cross-endpoint contracts, naming conventions — all implementers code against the same interfaces, laying the groundwork for parallel execution.
-
-```
-Interactive: ASCII diagrams (fast iteration)  →  Document: Mermaid diagrams (renderable, maintainable)
-```
-
-### ② Dynamic DAG Layered Parallelism
-
-Each task declares **Produces** (what it outputs) and **Consumes** (what it needs). Writing-plans automatically performs **topological sort** to build a dependency graph and compute execution layers. Same-layer tasks modify different files with no mutual dependencies → **dispatched simultaneously, no waiting**. Cross-layer is serial — upper layer must all pass before the next begins.
-
-```
-L0 (Contracts) → L1 (Data layer, parallel) → L2 (Business layer, parallel) → L3 (Integration)
-  Same-layer parallel ⚡                    Cross-layer serial 🔗
-```
-
-### ③ Enforced TDD + Routed Review Gates (Global Perspective)
-
-Implementer subagents **force-load the TDD skill** on startup, strictly following Red → Green → Refactor. **After all tasks complete**, the **review gate** runs: the requirement side `spec-review` (requirement coverage + inter-task consistency) **always runs**; the quality side `code-review` (code quality + architecture) **runs only when the deliverable contains executable code**, and **only over the code**. A failing review → new fix subagent → re-run that side (loop until pass). **Every reviewer is a fresh subagent** — fresh eyes, zero bias.
-
-**Pure doc / skill tasks skip code-review** — code-review's checklist (error handling, type safety, schema migration, security) is meaningless for skill Markdown: no control flow, no types, no schema. Running it anyway yields only noise findings like "naming could be better".
-
-**Exception (anti-blanket-skip):** when a doc / skill task embeds executable code (inline bash / node snippets), code-review **reviews only those snippets**; the doc portion still goes through spec-review — a `.md` file does not buy a free pass.
-
-**Review gate = full requirement map + all implementation code.** Accurate (global perspective) and cheap (only the side the deliverable actually needs).
-
-```
-Phase 1: All tasks implement → mark done
-   │
-   ▼
-Phase 2: Review Gate (spec-review always; code-review routed by deliverable)
-   ┌─ Overall spec-review (requirement side: always runs) ────┐
-   │ Coverage + inter-task consistency                          │ → ❌ → new fix subagent → re-run overall spec-review
-   └────────┬───────────────────────────────────────────────┘
-            ▼ ✅
-   Deliverable contains executable code?
-      ├─ No (pure docs / skills) ─→ finishing-a-development-branch
-      └─ Yes ─→ Overall code-review (code portion only)
-                  → ❌ → new fix subagent → re-run overall code-review
-                  → ✅ → finishing-a-development-branch
-```
-
-### ④ Persistent Progress + Context Preservation
-
-After each task completes, **immediately edit the plan file** checkbox (`- [ ]` → `- [x]`), then TaskUpdate. The file is the single persistent source of truth — progress can be recovered from checkbox state even if the session is interrupted. Fixes dispatch a **new implementer + original task context + review issue list** — context is never lost, old paths are never retread.
-
-The plan document also carries a `## Rulings` section for **one-line rulings** on key decisions (`> **Ruling:** <what was decided> — <why> — <cost if wrong>`) — rulings only, no Ledger and no running log. Dispatch is **pointer-based**: the controller hands over only "plan file path + `offset`/`limit` line window + this task's extra constraints + report path", never pasting task text or session history, **physically blocking context bloat**; reviewers and fixers **run `git diff` themselves** — the controller neither fetches nor pastes diff bodies into any prompt.
-
-```
-Edit plan file checkbox (persistent) → TaskUpdate (session marker)
-Fix: new subagent + original context + issue list
-Context blocking: pointer dispatch (offset/limit only) · subagents run git diff themselves
-```
-
-### ⑤ Comprehensive Document Review System
-
-Reviews throughout the flow. Design docs: **self-review of structural quality** (completeness/consistency/clarity) + **self-review of requirement fidelity** (omissions/distortions), with the independent perspective reserved for the user gate. Plan docs: **self-review against the design doc** (requirement alignment + Produces/Consumes reference integrity + cycle detection). Code review: **added architecture/file responsibility checkpoints**.
-
-```
-Design doc: self-review(structural) → self-review(requirement fidelity) → user gate
-Plan doc: self-review(against design doc, requirement + structural)
-Code review: added architecture checks (file responsibility/testability/structure/bloat)
-```
-
-### ⑥ Streamlined & Unified
-
-Document reviews are **self-review now** — official `Self-Review` says plainly "not a subagent dispatch", and the two `*-document-reviewer-prompt.md` files are deliberate orphans upstream. Lite had treated them as "dead references" and wired them back in (restoring the heavier 5.1.0 flow); the 2026-09-23 re-check corrected this to **running the checklist yourself** — structural quality and requirement fidelity each once, with the independent perspective reserved for the user gate. Both templates stay in the repo for when the user explicitly asks for an independent review. The **Architectural** skill chain is `brainstorming → writing-plans → execution handoff (choice of two)`; Spike and Bounded branch off into their own shorter paths after brainstorming triage.
-
-**executing-plans was restored on 2026-09-23** — official v6.4.1 rebuilt it from a 64-line stub into **Native inline execution** (the cheapest way to run a plan), which Lite borrows and rewrites minimally (~100 lines, zero scripts).
-
----
-
-## 📋 Quick Comparison vs Official
+## 📋 Differences vs Official
 
 | # | Official | Lite |
 |:--:|----------|------|
@@ -335,48 +117,43 @@ Document reviews are **self-review now** — official `Self-Review` says plainly
 | ⚡ | All tasks serial | DAG layered: same-layer parallel, cross-layer serial |
 | 🔗 | No contract mechanism, interfaces written ad-hoc | Contracts & Interfaces chapter mandatory, all implementers share one API |
 | 🧪 | TDD optional, subagents often skip | Enforced TDD loading, Red → Green → Refactor |
-| 👀 | Controller self-reviews | **Routed review gates** (spec-review always; code-review when the deliverable has executable code), subagent has full global perspective, more accurate findings |
+| 👀 | Controller self-reviews | **Routed review gates** (spec-review always; code-review when the deliverable has executable code), reviewer has full global perspective |
 | 💾 | TaskUpdate only, progress lost on session end | Edit plan file checkbox in real-time, file is persistent source of truth |
 | 🔧 | Fixes lose context | New implementer + original task context + review issue list |
-| 📋 | Upstream keeps both a self-review step and orphan review templates | Document reviews are **self-review** (structural + requirement fidelity, run by the Controller); the independent perspective is reserved for the user gate |
-| 🛤️ | Two execution paths, but executing-plans is a 64-line stub | Both paths implemented; Native inline rewritten minimally (zero scripts) with transparent cost |
+| 📋 | Upstream keeps both a self-review step and orphan review templates | Document reviews are **self-review**, independent perspective reserved for the user gate |
+| 🛤️ | Two execution paths, but executing-plans is a 64-line stub | Both paths implemented; Native inline rewritten minimally (zero scripts) |
 | 🏗️ | Code review lacks architecture checks | Added file responsibility/testability/structure compliance/bloat checks |
 
----
+Three differences worth expanding on:
 
-## 📂 Skill File Index
+**Routed review gates.** After all tasks complete, the review gate runs: the requirement side (coverage / inter-task consistency / scope creep) always runs; the quality side runs only when the deliverable contains executable code, and only over the code — for pure doc/skill tasks, code-review's checklist (error handling, type safety, schema migration) is meaningless for Markdown and only yields noise findings. Embedded code snippets do get reviewed — a `.md` file buys no free pass.
 
-| File | Original | Lite | Impact |
-|------|----------|------|:------:|
-| `brainstorming/SKILL.md` | 🌐 English, suggestive gate | 🇨🇳 Chinese, mandatory gate + intent reflection + diagram-driven + contract & interfaces + self-review | 🟡 Medium |
-| `brainstorming/diagram-driven-design.md` | — | 🆕 **New**: ASCII box + Mermaid diagram specs (incl. classDiagram) | 🟡 Medium |
-| `brainstorming/spec-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, structural quality review template (independent review only, on request) | 🟡 Medium |
-| `writing-plans/SKILL.md` | 🌐 English, code-clone generator | 🇨🇳 Chinese, task decomposition + Produces/Consumes + auto DAG layering + self-review | 🔴 **Massive** |
-| `writing-plans/plan-document-reviewer-prompt.md` | — | 🇨🇳 Chinese, plan review template (independent review only, on request) | 🟡 Medium |
-| `subagent-driven-development/SKILL.md` | 🌐 English | 🇨🇳 Chinese, routed review gates + pointer dispatch + layered parallel execution | 🔴 **Massive** |
-| `subagent-driven-development/spec-reviewer-prompt.md` | 🌐 English | 🇨🇳 Chinese, overall review template (on-demand full-code reads, self-locate features) | 🟡 Medium |
-| `subagent-driven-development/implementer-prompt.md` | 🌐 English, TDD optional | 🇨🇳 Chinese, enforced TDD + contracts + self-review hint | 🟡 Medium |
-| `requesting-code-review/SKILL.md` | 🌐 English | 🇨🇳 Chinese, **overall code-review** trigger (only when the deliverable has executable code) | 🔵 Small |
-| `requesting-code-review/code-reviewer.md` | 🌐 English | 🇨🇳 Chinese, added architecture/file responsibility checks | 🟡 Medium |
-| `executing-plans/SKILL.md` | 🌐 English (64-line stub) | 🆕 **New**: Native inline execution (implement every task yourself + one whole-branch review, zero scripts) | 🆕 New |
+**Self-review for documents.** Upstream `Self-Review` says plainly "not a subagent dispatch", and the two `*-document-reviewer-prompt.md` files are deliberate orphans there. Lite had mistakenly wired them back in; the 2026-09-23 re-check corrected this to **running the checklist yourself** (structural quality + requirement fidelity, one pass each), reserving the independent perspective for the user gate — the last and most effective one.
+
+**Two execution paths.** `executing-plans` borrows upstream v6.4.1's Native inline execution, rewritten minimally (~100 lines, zero scripts) — this session implements every task itself, the **cheapest** option. The dividing line vs SDD: whether you want a per-task review gate × how long the plan is × fixed overhead × task count. Both share the same precondition (tasks mostly independent); tightly coupled tasks suit neither.
 
 ---
 
-## 🚀 Getting Started
+## 📂 Skill Inventory
 
-### 📦 Installation
+| Skill | Change |
+|-------|--------|
+| `brainstorming` | 🔴 Three-tier triage + intent reflection + diagram-driven + contract & interfaces + self-review |
+| `writing-plans` | 🔴 Full rewrite: task decomposition + Produces/Consumes + DAG layering + Rulings |
+| `subagent-driven-development` | 🔴 Routed review gates + pointer dispatch + layered parallel execution |
+| `executing-plans` | 🆕 Native inline execution (zero scripts, cheapest) |
+| `requesting-code-review` | 🔵 Chinese + added architecture / file responsibility checks |
 
-**Option 1: Plugin marketplace (recommended)**
+The other 8 skills (TDD, systematic debugging, worktrees, branch wrap-up, etc.) come from upstream, Chinese-localized only. Full per-item rulings (adopt / reject + reasons): [`UPSTREAM.md`](UPSTREAM.md).
 
-```bash
-claude plugin marketplace add https://github.com/Geek-Bob/SuperpowersLite.git
-claude plugin install superpowers@superpowerslite
-```
+---
 
-13 skills plus a SessionStart hook injecting the Chinese bootstrap into every session. Upgrade with `claude plugin update superpowers`.
-**Same plugin name as the official superpowers — mutually exclusive**: uninstall the official one first (`claude plugin uninstall superpowers`).
+## 🔧 Alternative: Overlay Install
 
-**Option 2: Overlay the official plugin (fallback)**
+For when you want to keep the official plugin as the base (official base + Lite skill overlay).
+
+<details>
+<summary><b>Click to expand the full procedure</b></summary>
 
 ```bash
 # Clone the Lite repository
@@ -409,7 +186,7 @@ rm -rf "$SP/$VER/skills/writing-skills" \
        "$SP/$VER/skills/using-superpowers/references/pi-tools.md"
 cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
 
-# Verify: the injected bootstrap carries the triage (Spike), executing-plans is
+# Verify: the bootstrap carries the triage (Spike), executing-plans is
 # present, and no Lite-deleted official file survived
 grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
   && grep -q "6.4.1-l2" "$SP/$VER/skills/using-superpowers/SKILL.md" \
@@ -417,38 +194,21 @@ grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
   && [ ! -e "$SP/$VER/skills/writing-skills" ] \
   && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \
   && echo "install verified"
-
-# WARNING: an official plugin upgrade lands in a NEW version dir and silently
-# reverts the overlay. Re-run this whole block after every upgrade.
 ```
 
-### 🎬 Start Developing
+> ⚠️ **Re-run the overlay after every official plugin upgrade.** An upgrade lands in a new version dir and silently reverts to the official original (English, no triage) with no error whatsoever.
 
-Describe your requirements in a Claude Code session, and Claude will first invoke `brainstorming` to **triage** them, then follow the path it picked:
+</details>
 
-| Path | Flow | Notes |
-|:----:|------|-------|
-| 🔬 **Spike** | Question + probe plan → conclusion | A nod is enough to start; the output is an answer, no doc written |
-| 🧩 **Bounded** | Short design in chat → 🛑 confirm → TDD + code-review | No spec, no writing-plans |
-| 🏛️ **Architectural** | Full chain (table below) | Written spec + plan, two confirmation gates |
+---
 
-**Architectural path:**
-
-| Phase | Step | Note |
-|:-----:|------|------|
-| ① | 📝 **Requirements** → Spec output | 🛑 Wait for your confirmation |
-| ② | 📋 **Task decomposition** → Plan output | 🛑 Wait for your confirmation |
-| ③ | 🤖 **Execution** (SDD subagent / Native inline — either) | Fully automatic |
-| ④ | 👀 **Review gate** | overall spec-review (always) → overall code-review (only when the deliverable has executable code; requesting-code-review) |
-| ⑤ | 🏁 **Branch wrap-up** | finishing-a-development-branch |
-
-### ⚠️ Notes
+## ⚠️ Notes
 
 > 🟡 **Spec & Plan phases require your review** — read carefully before confirming
 
-> 🟢 **Execution is fully automatic** — Controller won't pause between tasks
+> 🟢 **Execution is fully automatic** — the Controller won't pause between tasks
 
-> 🔴 **If unsure about any task result** — interrupt anytime, Controller will stop for inspection
+> 🔴 **If unsure about any task result** — interrupt anytime, the Controller will stop for inspection
 
 ---
 

@@ -22,7 +22,7 @@ Superpowers Lite 是官方 [Superpowers](https://github.com/obra/superpowers) �
 
 - `skills/` —— 13 个技能。流程类：`brainstorming`（三路径分类 Spike / Bounded / Architectural）、`writing-plans`、执行二选一（`subagent-driven-development` / `executing-plans`）；其余为支撑技能（TDD、调试、代码审查、worktree 等）
 - `UPSTREAM.md` —— 上游跟踪台账：逐项裁决 + 原因、同步待办区
-- `README.md` / `README.en.md` —— 面向用户：完整工作流图、六大改造亮点、安装方式（插件市场 + 覆盖式）
+- `README.md` / `README.en.md` —— 面向用户：快速开始、工作流图、与官方的差异、安装方式（插件市场 + 覆盖式）
 - `.claude-plugin/` + `hooks/` —— 插件清单（plugin.json + marketplace.json）与 SessionStart 注入器；版本号三处统一：plugin.json / bootstrap 版本行 / README 安装校验针
 - `LICENSE` / `NOTICE.md` —— MIT 许可（官方原文）+ 衍生声明
-- 设计背景（契约优先 / DAG 分层 / 审查门控分流 / 两条执行路径的分界判据 / Rulings / 指针化派发）：README「六大改造亮点」+ 对应技能文件，此处不复述
+- 设计背景（契约优先 / DAG 分层 / 审查门控分流 / 两条执行路径的分界判据 / Rulings / 指针化派发）：README「与官方的差异」+ 对应技能文件，此处不复述
