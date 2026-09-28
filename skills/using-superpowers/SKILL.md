@@ -63,8 +63,8 @@ description: 在开始任何会话时使用 - 建立如何查找和使用技能�
 技能正文使用 Claude Code 的工具名。非 CC 平台读对应 reference，含该平台的技能调用方式与工具映射：
 
 - Codex：`references/codex-tools.md`
-- Copilot CLI：`references/copilot-tools.md`
 - Gemini CLI：`references/gemini-tools.md`
+- Copilot CLI：核心映射内联于此——`Read/Write/Edit/Bash/Grep/Glob → view/create/edit/bash/grep/glob`，`Skill → skill`，`Task → task`（`read_agent` / `list_agents` 查状态）；其余工具面见 Copilot CLI 文档
 
 ## 用户指令
 

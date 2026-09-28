@@ -166,7 +166,7 @@ Task 工具 (general-purpose):
     - **状态：** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
     - **commit：** 本任务的 commit SHA
     - **测试摘要：** 一行
-    - **顾虑：** 如有
+    - **顾虑：** 如有，带类型标签——`[bug]` 未修的已知问题 / `[观察]` 不阻塞的疑虑 / `[下一步]` 建议后续。`[bug]` 不许当观察混过：要么修完再报 DONE，要么进最终报告「未解 bug」清单
 
     **无开场白契约：** 第一行直接给结论；每行 = 结论 / 带 `file:line` 的发现 / 跑过的检查；禁止开场白、过程叙述、收尾总结。
 

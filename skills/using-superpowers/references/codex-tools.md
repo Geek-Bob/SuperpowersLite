@@ -1,18 +1,3 @@
-# Codex 工具映射
-
-技能使用 Claude Code 的工具名称。当你在技能中遇到这些名称时，请使用你平台上的对应项：
-
-| 技能引用项 | Codex 对应项 |
-|-----------------|------------------|
-| `Task` 工具（派发子代理） | `spawn_agent`（参见[子代理派发需要多代理支持](#子代理派发需要多代理支持)） |
-| 多个 `Task` 调用（并行） | 多个 `spawn_agent` 调用 |
-| Task 返回结果 | `wait_agent` |
-| Task 自动完成 | V2 **无需显式关闭**——子代理完成即释放；仅 V1 会话有 `close_agent` |
-| `TaskCreate` / `TaskUpdate`（任务跟踪） | `update_plan` |
-| `Skill` 工具（调用技能） | 技能原生加载——直接遵循指令即可 |
-| `Read`、`Write`、`Edit`（文件） | 使用你的原生文件工具 |
-| `Bash`（运行命令） | 使用你的原生 shell 工具 |
-
 ## 子代理派发需要多代理支持
 
 添加到你的 Codex 配置中（`~/.codex/config.toml`）：
@@ -22,11 +7,32 @@
 multi_agent = true
 ```
 
-此配置启用 `spawn_agent` 与 `wait_agent`，用于 `dispatching-parallel-agents` 和 `subagent-driven-development` 等技能。
+此配置启用 `dispatching-parallel-agents` 和 `subagent-driven-development` 等技能所使用的多代理工具。你获得哪些工具取决于你的模型预设所选的多代理版本（当前预设运行 V2；较旧的运行 V1）。当它们不一致时，以你的实际工具列表为准，而非任何表格——包括本表。
 
-**V2 没有 `close_agent`。** 完成的子代理自行释放，关闭动作不产生任何开销；只有 **V1** 会话才有 `close_agent`。
+- **派发（Spawning）：** 用 `spawn_agent {fork_turns: "none"}` 给子代理一个干净的上下文；默认的 `"all"` 会把你的完整 transcript 复制进子代理。在 Codex 0.145+ 上，`~/.codex/agents/` 下的角色文件通过 `agent_type` 附着到隔离 fork。全历史 fork 接受 `model` 和 `reasoning_effort` 覆盖（在那里只有 `agent_type` 被拒绝）——隔离 fork 是 SDD 出于上下文卫生（context hygiene）考虑的默认选择，而非因为覆盖需要它们。
+- **修复轮次（Fix rounds）：** 用 `followup_task` 恢复实现者——它投递你的消息、触发一轮对话，并透明地重新加载被 harness 驱逐的子代理。绝不要基于"派发出去的代理无法再次收到消息"这一臆断而重新派发一个全新的实现者；在 V2 上它始终可以再次收到消息。
+- **生命周期（Lifecycle）：** V2 没有 `close_agent`。完成的子代理在需要槽位时被自动驱逐；不关闭它们不产生任何开销。只有 V1 会话才有 `close_agent`——在那里，审查者返回审查结果时关闭它，每个实现者在其任务的审查通过后关闭。
+- **模型名称（Model names）：** 绝不要把技能、表格或旧会话中的模型名称直接复制进 `spawn_agent`，除非已对照你当前的 spawn 允许列表核查过——V2 只接受支持 V2 的预设，对其余的会硬报错。
 
-遗留说明：`rust-v0.115.0` 之前的 Codex 构建版本将派生子代理的等待暴露为 `wait`。当前 Codex 对派生子代理使用 `wait_agent`。`wait` 名称现在归属于代码模式的 `exec/wait`，用于通过 `cell_id` 恢复一个已挂起的执行单元；它不是派生子代理的结果工具。
+## 等待子代理
+
+`wait_agent` 是事件订阅，而非轮询：长等待会在子代理产生邮箱活动的那一刻唤醒，延迟与短等待相同。短超时轮询毫无收益，且每次轮询都要消耗一次工具调用——以及一次上下文重新计费（context rebill）。在实测会话中，大约三分之二的等待调用都是超时的短轮询。
+
+- 当你仍有本地工作时，完全不要等待。已完成子代理的最终答案会被推入你的邮箱，并随你的下一轮对话到达。
+- 当你确实空闲且有子代理未完成时，以有界的时间段等待：`wait_agent` 配上 `timeout_ms` 300000-600000（5-10 分钟）。每一段结束后——无论唤醒还是超时——发布一行状态、运行 `list_agents`，并追问任何已完成但未上报的子代理。绝不要堆叠短于五分钟的轮询；事件订阅唤醒一个有界时间段的速与短轮询一样快。
+- 完成邮件无法唤醒空闲的控制器（它的投递不触发一轮对话）；覆盖该空闲窗口正是 `wait_agent` 唯一的职责。一段无任何活动而超时的时间段，是提示你去做对账（reconcile）的信号，而不是让你缩短下一段的信号。
+
+## 派发时的模型路由
+
+你发出的每一个 `spawn_agent`——包括当你自己也是一个正在执行扇出（fan-out）的子代理时——都要显式设置 `model` 和 `reasoning_effort`，并遵循你正在执行的技能的模型选择（Model Selection）规则。只设置 `model` 是个陷阱：子代理的 effort 会被静默重置为该模型的默认值，而不是你的值。
+
+请你的真人搭档往 `~/.codex/config.toml` 中添加一个机器级兜底（backstop），使得任何漏网的派发仍然路由到一个经过斟酌的层级，而不是静默继承会话中最昂贵的模型：
+
+```toml
+[agents]
+default_subagent_model = "<a mid-tier model from your spawn allowlist>"
+default_subagent_reasoning_effort = "medium"
+```
 
 ## 环境检测
 
