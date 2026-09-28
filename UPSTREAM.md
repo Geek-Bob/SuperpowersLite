@@ -106,6 +106,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | **插件名 superpowers 与官方同名互斥** | 库内几十处 `superpowers:xxx` 技能引用不改前缀，改前缀=全库改动+每次同步多维护一层差异；Lite 语义即「官方替代品」，不能与官方共存 |
 | **NOTICE.md 衍生声明** | MIT 衍生分发合规（LICENSE 与官方逐字相同，衍生声明单独成件）——勿删 |
 | **插件工程面（l2 定界）** | **接管**：`.claude-plugin/`（plugin.json + marketplace.json，自建市场 `superpowerslite`）+ `hooks/` 三件原样拷贝（注入器读 Lite 中文 bootstrap 直接生效，脚本无本地化语义）。**不接管**：tests/、scripts/、AGENTS.md、package.json、index.js、gemini-extension.json、assets/、官方 docs/（移植文档）、CODE_OF_CONDUCT.md——超出「中文轻量技能库」最小必要面 |
+| **最小结构冒烟测试**（`tests/smoke.sh`） | 3 项机械断言（frontmatter 合法 / markdown 引用文件存在 / `superpowers:` 技能引用可解析），零依赖，已做灵敏度验证（注入坏引用即红）。官方 66 个测试不适用 Lite 结构——机械约束自动化，判断类留给审查 |
 
 > ⚠️ 注意：官方 6.1.0 曾把 bootstrap 的图换成散文（理由是每会话成本）。Lite 的双阶段图表策略用于**设计文档**，不与 bootstrap 冲突——两处用途不同。
 
@@ -134,6 +135,9 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | `requesting-code-review` 的 `## 与工作流的集成` | Lite 独有，非冗余 |
 | SDD / EP 主动重写 | 不适用「官方简化」判据 |
 | TDD「为什么顺序重要」节 | 官方实测删整节降级（8/10→5/10），Lite 已补回 5 条论证（约 +8 行，非恢复整节） |
+| `.gitignore` 忽略 `docs/`（spec/plan 不受控） | 维持现状（2026-09-28 用户裁决）——docs/ 是开发 superpowers 自身的工件目录，非用户交付物；换机/clone 丢计划的后果已知悉接受。将来需要跨机协作再议 |
+| 8 条纯推理机制补实测 | 关闭（2026-09-28 用户裁决）——待反例出现再测，不做无目标全量验证 |
+| `copilot-tools.md` 去留 | 已删（2026-09-28 用户裁决 a）——核心映射 3 行内联进 using-superpowers 平台适配节，与官方 6.1.0 删除同向；无独立文件 = 无过期面 |
 
 ---
 
@@ -156,7 +160,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 1. **子代理数字必须主控复测定数** —— haiku 审计+证伪复核双层质量超预期（v3：11 项 P0/P1 复核全确认、主控 20+ 项亲验零翻案），但复核员自己的 SDD diff 数字仍错 20 行（报 1045，实测 1025，主控定数）。盲区批评家是性价比最高的角色
 2. **推演必须实测** —— v4 的 H3「静默失败」推演被主控临时目录双场景实测**证伪**（cp 报错、校验失败可见）
 3. **主控也会带错前提** —— 写任务书前必须先查台账（v4 F 审计员纠正主控 3 处过时前提，台账本来就有正确答案）
-4. **指导形态匹配失败类型**（`Match the Form to the Failure`）—— 纪律型失败用合理化对照表，输出形状问题用正向配方；禁止式对形状问题实测比无指导还差。2026-09-28 SDD 重写（498→143 行）即按此执行
+4. **指导形态匹配失败类型**（`Match the Form to the Failure`）—— 纪律型失败用合理化对照表，输出形状问题用正向配方；禁止式对形状问题实测比无指导还差。2026-09-28 SDD 重写（498→143 行）即按此执行；同日全库措辞审查完成（writing-plans 占位符转配方、EP 红线转表、receiving-code-review 3 处转配方——TDD 的 loophole 清单属纪律型正确形态，保留）
 
 **三个测量陷阱（Windows/Bash 环境）：**
 
@@ -170,15 +174,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 
 | 项 | 说明 |
 |---|---|
-| **全库措辞形式审查** | 按「指导形态匹配失败类型」逐处判断禁止式该改正向配方还是保留，是一次独立的全库改动 |
-| **5 个技能未中文化** | 真缺陷是「同一仓库两种语言」而非「没动过」——6 个 SKILL.md 汉字数为 0 或英文主体（dispatching / receiving-code-review / systematic-debugging / using-git-worktrees / verification-before-completion），description 与官方逐字相同 |
-| **报告契约缺「未解 bug」通道** | 「未解 bug / 下一步计划」只有模糊的「顾虑」，无明确接收方处理流程；与判据 2 有张力，暂缓 |
-| **house form 未对齐** | `finishing`（60 行 vs 官方 14）与 `using-git-worktrees`（44 vs 9）仍是 `Common Mistakes` + `Red Flags` 旧形式，转 `Common Rationalizations` 表可省约 60 行。**实缺规则仅 2 条**（merged 结果失败就停手、push 被拒诊断），v2 已修 |
-| **最小结构冒烟测试** | 官方 66 个测试不可直接复用。候选 3 项（纯文件断言、零依赖）：frontmatter 合法 / 技能引用的文件存在 / 安装目录与仓库一致。**与判据 4 有张力，待用户裁决** |
-| **平台映射文件已 drift** | `codex-tools.md`（53 行 vs 官方 108）与 `gemini-tools.md`（50 vs 63）停留 5.1.0 时代；官方已扩展为 7 平台 |
-| **`copilot-tools.md` 去留** | 官方 6.1.0 已删（「已无 harness 专属内容」）；Lite 保留 = 维护一份上游已无对照的文件，映射会静默过期 |
-| **四处「自审」定义是否统一** | brainstorming（结构+需求）/ writing-plans（5 维）/ SDD（4 维）/ EP（完成契约 4 项）各一套清单，新增交付物时不知该改哪份 |
-| **8 条纯推理机制是否补实测** | 「Lite 独有」11 条中仅 1 条有实测（固定开销判据）。补实测成本高、收益不明 |
+| **附属文档中文化** | systematic-debugging 的 4 个附属 .md（root-cause-tracing 等）与测试夹具（test-*.md / .ts）仍英文。附属文档可翻（代价同 SKILL.md 翻译）；测试夹具建议保留英文（与官方对照性）。**2026-09-28 前的 10 项待办已全部清算**（用户裁决 3 + 执行 7，见「历史轮次索引」末行与「已裁定等价」表） |
 
 ---
 
@@ -188,7 +184,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 2. 逐条对照本台账：已在「已采纳 / 已拒绝 / 已同构」→ 跳过；新条目 → 列入「待裁决」
 3. 对待裁决项按**判据**逐条裁决，把结论与原因追加到对应表格
 4. 更新文首的「当前上游」与「上次同步」
-5. 若官方改动触及 Lite 已改造的技能，需额外 diff 该技能的**正文**，不只看 release notes——**远 divergence 共 8 个**：brainstorming / writing-plans / SDD / executing-plans / test-driven-development / finishing-a-development-branch / requesting-code-review / using-superpowers（分级见下方「技能贴近度基线」）
+5. 若官方改动触及 Lite 已改造的技能，需额外 diff 该技能的**正文**，不只看 release notes——**全部 13 个 SKILL.md 均为远 divergence**（翻译交织 / 重写，见下方基线表）；「贴近」档已不存在（2026-09-28 中文化后）
 6. **别漏元技能。** `writing-skills` 曾在 2026-09-23 同步中被漏掉——它是技能的文件来源技能（2026-09-24 已由用户删除，本条仅作历史记录，防的是「同类元层文件被漏」这个模式）
 
 ---
@@ -200,7 +196,7 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 | 类 | 数 | 明细 |
 |---|---:|---|
 | 删除 | 45 | 视觉伴侣 6（无鉴权洞）· diagnosing-superpowers 整技能 20 · EP 脚本 2（task-start/task-done）· SDD 脚本 3 + 任务级模板 2 · 平台映射 5（antigravity/claude-code/hermes/muse/pi）· writing-skills 整技能 7（用户删除）——裁决见「已拒绝」 |
-| 新增（skills） | 3 | `diagram-driven-design.md` · `spec-reviewer-prompt.md` · `copilot-tools.md`（去留见待办） |
+| 新增（skills） | 2 | `diagram-driven-design.md` · `spec-reviewer-prompt.md`（`copilot-tools.md` 已删并内联） |
 | 新增（顶层） | 5 | `UPSTREAM.md` · `README.en.md` · `NOTICE.md` · `.claude-plugin/` 两件（plugin.json + marketplace.json） |
 | 修改 | 21 | 全部为 SKILL.md / 模板文件，diff 明细见下方「技能贴近度基线」 |
 | 逐字相同 | 9 | 全部为 systematic-debugging 附属文件 |
@@ -211,27 +207,27 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 
 ---
 
-## 技能贴近度基线（2026-09-28 实测刷新，下次同步后更新）
+## 技能贴近度基线（2026-09-28 二次刷新，下次同步后更新）
 
-归一化行尾后 diff（官方 v6.4.1 → Lite），按下次同步的动作分级：
+归一化行尾后 diff（官方 v6.4.1 → Lite），按下次同步的动作分级。**2026-09-28 中文化后全库均为「翻译交织/重写」——同步成本的真实单位是「官方 delta 条数 × 重译落位难度」，patch / 三方合并不可用**：
 
 | 技能 | diff 行 | 分级 | 形态 | 预计动作 |
 |---|---:|---|---|---|
-| verification-before-completion | 2 | 贴近 | 英文逐字 | 直接套 |
-| receiving-code-review | 4 | 贴近 | 英文逐字 | 直接套 |
-| systematic-debugging | 9 | 贴近 | 英文逐字 | 直接套 |
-| dispatching-parallel-agents | 14 | 贴近 | 英文逐字 | 直接套 |
-| using-git-worktrees | 54 | 中 | 主体逐字 + 尾部自研 | 小改 |
+| using-git-worktrees | 151 | 远 | 翻译交织 | 重译落位 |
 | using-superpowers | 84 | 远 | 翻译交织 | 重译落位 |
+| dispatching-parallel-agents | 212 | 远 | 翻译交织 | 重译落位 |
+| finishing-a-development-branch | 207 | 远 | 翻译交织 | 重译落位 |
 | requesting-code-review | 128 | 远 | 翻译交织 | 重译落位 |
-| finishing-a-development-branch | 210 | 远 | 翻译交织 | 重译落位 |
+| verification-before-completion | 152 | 远 | 翻译交织 | 重译落位 |
+| receiving-code-review | 254 | 远 | 翻译交织 | 重译落位 |
+| systematic-debugging | 391 | 远 | 翻译交织 | 重译落位 |
 | test-driven-development | 310 | 远 | 翻译交织 | 重译落位 |
-| writing-plans | 349 | 远 | 翻译交织 | 重译落位 |
+| writing-plans | 347 | 远 | 翻译交织 | 重译落位 |
 | brainstorming | 420 | 远 | 翻译交织 | 重译落位 |
-| executing-plans | 430 | 远 | 全文重写 | 设计级移植 |
+| executing-plans | 432 | 远 | 全文重写 | 设计级移植 |
 | subagent-driven-development | 633 | 远 | 设计级重写 | 设计级移植 |
 
-「翻译交织」= 官方行被逐行替换为中文（change-hunks 主导、纯新增块 ≈ 0）——**patch / 三方合并不可用**，同步成本的真实单位是「官方 delta 条数 × 重译落位难度」，不是 diff 行数。辅助文件：`code-reviewer.md`（268）/ `implementer-prompt.md`（255）为重写级；`writing-good-tests.md` diff=220（Lite 重写 66 行 vs 官方 198 行）；systematic-debugging 的 **9 个**附属文件 diff=0，`find-polluter.sh` 仅注释折行差异、代码同官方修好版；Lite 独有 3 文件（`diagram-driven-design.md` / `spec-reviewer-prompt.md` / `copilot-tools.md`）零冲突。
+历史对照：中文化前 5 个技能（verification/receiving/systematic/dispatching/worktrees）为「贴近」档（diff 2–54，同步可直接套官方）——2026-09-28 为语言一致性付出的已知情代价（用户裁决全文翻译）。辅助文件：`code-reviewer.md`（268）/ `implementer-prompt.md`（255）为重写级；`writing-good-tests.md` diff=220（Lite 重写 66 行 vs 官方 198 行）；systematic-debugging 的 **9 个**附属文件 diff=0，`find-polluter.sh` 仅注释折行差异、代码同官方修好版；Lite 独有 2 文件（`diagram-driven-design.md` / `spec-reviewer-prompt.md`）零冲突（`copilot-tools.md` 已于 2026-09-28 删除并内联）。
 
 ---
 
@@ -248,3 +244,4 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 | v4 + 正向映射 | 2026-09-24 | 官方无增量（四路核实）；10 项修复；77 条完备性证明 | 2a7e5a1（l1） |
 | l2 发版 | 2026-09-24 | 插件市场结构（plugin.json / marketplace.json / hooks） | 2106fce |
 | 文档瘦身四连 | 2026-09-24~28 | CLAUDE.md 190→28 行；README 463/470→225/229；SDD 498→143 行（方法论重构）；UPSTREAM 553→230 行（台账整合）+ 文件层查漏补缺 | c7981a2 / 7c12907 / d49f380 / f92eadd |
+| 待办清算轮 | 2026-09-28 | 10 项待办全清（裁决 3 + 执行 7）：6 文件中文化（5 SKILL.md + finishing）、house form 转表（finishing/worktrees，17+27 条规则零丢失）、全库措辞审查、报告顾虑标签 `[bug]/[观察]/[下一步]`、自审命名统一（文档自审/任务自审）、平台映射同步（codex/gemini 按 v6.4.1 重译）、`tests/smoke.sh`、copilot-tools 内联删除 | 本轮 |
