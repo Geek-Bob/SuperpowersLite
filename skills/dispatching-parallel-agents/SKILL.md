@@ -65,15 +65,16 @@ Each agent gets:
 
 ### 3. Dispatch in Parallel
 
-Issue all three dispatches in the same response. They run in parallel:
+Issue all three subagent dispatches in the same response — they run in parallel:
 
 ```text
 Subagent (general-purpose): "Fix agent-tool-abort.test.ts failures"
 Subagent (general-purpose): "Fix batch-completion-behavior.test.ts failures"
 Subagent (general-purpose): "Fix tool-approval-race-conditions.test.ts failures"
+# All three run concurrently.
 ```
 
-**Multiple dispatch calls in one response = parallel execution. One per response = sequential.**
+Multiple dispatch calls in one response = parallel execution. One per response = sequential.
 
 ### 4. Review and Integrate
 

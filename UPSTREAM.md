@@ -213,10 +213,10 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 
 | 技能 | diff 行 | 分级 | 形态 | 语言 | 预计动作 |
 |---|---:|---|---|---|---|
-| verification-before-completion | 2 | 贴近 | 英文逐字 | 英 | 直接套 |
-| systematic-debugging | 9 | 贴近 | 英文逐字 | 英 | 直接套 |
-| receiving-code-review | 12 | 贴近 | 英文 + 1 处正向配方 | 英 | 小改 |
-| dispatching-parallel-agents | 14 | 贴近 | 英文逐字 | 英 | 直接套 |
+| verification-before-completion | 2 | 贴近 | 英文 + 1 处铁律句 | 英 | 直接套 |
+| systematic-debugging | 5 | 贴近 | 英文 + 2 处新增 | 英 | 直接套 |
+| dispatching-parallel-agents | 9 | 贴近 | 英文 + 验证内嵌结构 | 英 | 小改 |
+| receiving-code-review | 10 | 贴近 | 英文 + 1 处正向配方 | 英 | 小改 |
 | using-git-worktrees | 15 | 贴近 | 英文 + house form 表 | 英 | 小改 |
 | using-superpowers | 90 | 远 | 翻译交织 | 中 | 重译落位 |
 | requesting-code-review | 136 | 远 | 翻译交织 | 中 | 重译落位 |
@@ -231,13 +231,19 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 
 **意外收获：** worktrees 的 house form 转表**与官方 v6.4.1 的演进方向一致**（官方尾部已是 `Common Rationalizations` 表），故转表后 diff 反从 54 降到 15——上一轮的实质改造实际是补齐了官方形态。
 
-**对照层剩余 drift（保留英文才看得见，属下次同步的直接收获）：**
+**对照层 drift 处置记录（2026-09-28 跟进 7 处官方更新；剩余差异全为 Lite 有意保留）：**
 
-| 文件 | drift |
-|---|---|
-| receiving L30 / L127 | 官方已改「explicit CLAUDE.md violation」→「explicit instruction-file violation」（通用化）；已删 "Strange things are afoot at the Circle K"，改为正向表达——**待跟** |
-| worktrees L93 / house form | Lite 精简掉 1 行 `# Determine path based on chosen location` 注释；house form 表 Lite 7 行 vs 官方 5 行（Lite 多「基线测试」「依赖 setup」2 条） |
-| receiving `Response Wording` | Lite 正向配方 vs 官方 `Forbidden Responses` 禁止式——Match the Form 改造，**有意保留** |
+| 类 | 位置 | 处置 |
+|---|---|---|
+| **已跟官方** | dispatching L68/L73/L76 | 措辞对齐（`subagent dispatches` + 破折号）；代码块补 `# All three run concurrently.`（同步时丢失）；去加粗 |
+| **已跟官方** | systematic L191/L241 | 去加粗；`Ultrathink` → `Ultra-think` |
+| **已跟官方** | receiving L30/L127 | `CLAUDE.md violation` → `instruction-file violation`（官方通用化，脱离 Claude Code 专名）；Circle K 电影梗 → 官方正向指导语 |
+| **有意保留** | verification L10 · systematic L10/L286 | Lite 新增铁律句 2 处 + `Related skills` 交叉引用 |
+| **有意保留** | dispatching L86/L162 | `Spot check` 内嵌于 `### 4. Review and Integrate`（4 步等价且多 `Integrate all changes`），优于官方文末独立 `## Verification` 节 |
+| **有意保留** | receiving `Response Wording` | Lite 正向配方 vs 官方 `Forbidden Responses` 禁止式——Match the Form 改造 |
+| **有意保留** | worktrees L93 / house form | Lite 精简 1 行 `# Determine path...` 注释；house form 表 Lite 7 行 vs 官方 5 行（多「基线测试」「依赖 setup」） |
+
+跟进的定性依据：首提交 `fe98b18` 与官方 v6.4.1 逐行比对 + `git log -S` 词频（`Ultra-think` / `instruction-file` 在 Lite 历史 0 命中 = 官方新措辞，从未跟过）。**下次同步时对照层请只做行级比对**——剩余差异都是有理由的设计选择，勿当 drift 清掉。
 
 辅助文件：`code-reviewer.md`（268）/ `implementer-prompt.md`（255）为重写级；`writing-good-tests.md` diff=220（Lite 重写 66 行 vs 官方 198 行）；systematic-debugging 的 **9 个**附属文件 diff=0（英文，随对照层），`find-polluter.sh` 仅注释折行差异、代码同官方修好版；Lite 独有 2 文件（`diagram-driven-design.md` / `spec-reviewer-prompt.md`）零冲突（`copilot-tools.md` 已于 2026-09-28 删除并内联）；测试夹具 `test-*.md` 一律英文。
 
