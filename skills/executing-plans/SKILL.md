@@ -15,7 +15,7 @@ description: 用户选择内联执行、或无子代理工具可用时使用—�
 
 计划已被用户确认，且用户在执行交接时选了内联。
 
-**无子代理工具时同样适用**——绝不伪造派发，就地执行。与 SDD 的分工判据见 `../subagent-driven-development/SKILL.md` 的「何时使用」。
+**无子代理工具时同样适用**——绝不伪造派发，就地执行。与 SDD 的分工判据见 `../writing-plans/SKILL.md` 的执行交接节。
 
 ## Setup
 
