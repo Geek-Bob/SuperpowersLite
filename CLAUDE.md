@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Superpowers Lite 是官方 [Superpowers](https://github.com/obra/superpowers) 的轻量化深度定制版。
 
-**Fork 点：** v5.1.0（2026-04-30）· **当前上游：** v6.4.1（2026-09-19）· **Lite 版本：** `6.4.1-l2` · 裁决台账见 [`UPSTREAM.md`](UPSTREAM.md)
+**Fork 点：** v5.1.0（2026-04-30）· **当前上游：** v6.4.1（2026-09-19）· **Lite 版本：** `6.4.1-l3` · 裁决台账见 [`UPSTREAM.md`](UPSTREAM.md)
 
 **核心差异：** 计划不再包含实现代码，只包含验收契约。实现者自行 TDD，不走抄代码捷径。**持续跟踪官方上游**——只做优化与简化，每项采纳/拒绝都记入 `UPSTREAM.md`，便于下次增量合并。
 
@@ -14,7 +14,7 @@ Superpowers Lite 是官方 [Superpowers](https://github.com/obra/superpowers) �
 
 ## 硬约束
 
-1. **产出物语言**：技能文件与文档用简体中文，技术术语保留英文（TDD、DAG、Produces/Consumes、checkbox）；README 双语。
+1. **产出物语言（分层）**：**测试夹具**（test-*.md 等）与**对照层**（相对官方 diff≤60、下次同步可直接套 patch 的文件）一律英文，保住逐字对照性；**改造层**（diff≥84，已是翻译交织/重写）用简体中文。技术术语保留英文（TDD、DAG、Produces/Consumes、checkbox）。语言契约的清单与检测是 `tests/smoke.sh` 第 4 类断言（权威源）；README 双语。
 2. **单一真相源**：工作流行为只在技能文件里改；本文件与 README 只做指针、不复述规则——多副本必然漂移（v6.4.1-l2 发版曾漏同步本文件，即为此故）。
 3. **裁决记录**：对官方上游的每项采纳/拒绝都记入 `UPSTREAM.md`，原因比结论重要，否则下次同步会重复争论同一个问题。
 

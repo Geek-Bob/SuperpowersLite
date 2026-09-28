@@ -2,9 +2,9 @@
 
 **Fork 点：** superpowers **v5.1.0**（2026-04-30）
 **当前上游：** superpowers **v6.4.1**（2026-09-19T00:31Z，2026-09-24 四路交叉核实仍为最新）
-**Lite 版本：** `6.4.1-l2`（l1=四轮对比修复+完备性证明；l2=插件市场结构）
+**Lite 版本：** `6.4.1-l3`（l1=四轮对比修复+完备性证明；l2=插件市场结构；l3=语言分层，对照层回退英文）
 **上次同步：** 2026-09-23（v5.1.0 → v6.4.1）· 同日二次复核
-**发版：** v6.4.1-l1（commit 2a7e5a1）· v6.4.1-l2（commit 2106fce）——历史轮次见文末索引
+**发版：** v6.4.1-l1（commit 2a7e5a1）· v6.4.1-l2（commit 2106fce）· v6.4.1-l3（语言分层）——历史轮次见文末索引
 
 上游每个版本的变更都记在官方 `RELEASE-NOTES.md`。**同步时先读它**，不必重跑全量 diff。
 
@@ -174,7 +174,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 
 | 项 | 说明 |
 |---|---|
-| **附属文档中文化** | systematic-debugging 的 4 个附属 .md（root-cause-tracing 等）与测试夹具（test-*.md / .ts）仍英文。附属文档可翻（代价同 SKILL.md 翻译）；测试夹具建议保留英文（与官方对照性）。**2026-09-28 前的 10 项待办已全部清算**（用户裁决 3 + 执行 7，见「历史轮次索引」末行与「已裁定等价」表） |
+| **附属文档中文化**（已作废） | 原计划按「附属 / 主文件」翻译。2026-09-28 语言分层政策**取代此判据**：语言改按「与官方 diff 大小」分层（CLAUDE.md 硬约束 1 + `tests/smoke.sh` 第 4 类断言），不再存在「待翻译的附属文档」。测试夹具保留英文由「建议」升为硬约束。**2026-09-28 前的 10 项待办已全部清算**（用户裁决 3 + 执行 7，见「历史轮次索引」末行与「已裁定等价」表） |
 
 ---
 
@@ -184,7 +184,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 2. 逐条对照本台账：已在「已采纳 / 已拒绝 / 已同构」→ 跳过；新条目 → 列入「待裁决」
 3. 对待裁决项按**判据**逐条裁决，把结论与原因追加到对应表格
 4. 更新文首的「当前上游」与「上次同步」
-5. 若官方改动触及 Lite 已改造的技能，需额外 diff 该技能的**正文**，不只看 release notes——**全部 13 个 SKILL.md 均为远 divergence**（翻译交织 / 重写，见下方基线表）；「贴近」档已不存在（2026-09-28 中文化后）
+5. 若官方改动触及 Lite 已改造的技能，需额外 diff 该技能的**正文**，不只看 release notes——13 个 SKILL.md 分两档（见下方基线表）：**8 个远 divergence**（翻译交织 / 重写，重译落位）+ **5 个对照层**（diff 2–15，英文逐字或小改，可直接套官方 patch）。对照层请**只做行级比对、勿整文件回滚**——它们各自带着 0–2 处有意保留的实质改造（见基线表 drift 清单）
 6. **别漏元技能。** `writing-skills` 曾在 2026-09-23 同步中被漏掉——它是技能的文件来源技能（2026-09-24 已由用户删除，本条仅作历史记录，防的是「同类元层文件被漏」这个模式）
 
 ---
@@ -207,27 +207,39 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 
 ---
 
-## 技能贴近度基线（2026-09-28 二次刷新，下次同步后更新）
+## 技能贴近度基线（2026-09-28 三次刷新，下次同步后更新）
 
-归一化行尾后 diff（官方 v6.4.1 → Lite），按下次同步的动作分级。**2026-09-28 中文化后全库均为「翻译交织/重写」——同步成本的真实单位是「官方 delta 条数 × 重译落位难度」，patch / 三方合并不可用**：
+归一化行尾后 diff（官方 v6.4.1 → Lite），变更行计数 `diff | grep -c '^[<>]'`，官方快照 `superpowers-main/`。**语言列**（CLAUDE.md 硬约束 1）：英=对照层，同步可直接套 / 小改；中=改造层，重译落位：
 
-| 技能 | diff 行 | 分级 | 形态 | 预计动作 |
-|---|---:|---|---|---|
-| using-git-worktrees | 151 | 远 | 翻译交织 | 重译落位 |
-| using-superpowers | 84 | 远 | 翻译交织 | 重译落位 |
-| dispatching-parallel-agents | 212 | 远 | 翻译交织 | 重译落位 |
-| finishing-a-development-branch | 207 | 远 | 翻译交织 | 重译落位 |
-| requesting-code-review | 128 | 远 | 翻译交织 | 重译落位 |
-| verification-before-completion | 152 | 远 | 翻译交织 | 重译落位 |
-| receiving-code-review | 254 | 远 | 翻译交织 | 重译落位 |
-| systematic-debugging | 391 | 远 | 翻译交织 | 重译落位 |
-| test-driven-development | 310 | 远 | 翻译交织 | 重译落位 |
-| writing-plans | 347 | 远 | 翻译交织 | 重译落位 |
-| brainstorming | 420 | 远 | 翻译交织 | 重译落位 |
-| executing-plans | 432 | 远 | 全文重写 | 设计级移植 |
-| subagent-driven-development | 633 | 远 | 设计级重写 | 设计级移植 |
+| 技能 | diff 行 | 分级 | 形态 | 语言 | 预计动作 |
+|---|---:|---|---|---|---|
+| verification-before-completion | 2 | 贴近 | 英文逐字 | 英 | 直接套 |
+| systematic-debugging | 9 | 贴近 | 英文逐字 | 英 | 直接套 |
+| receiving-code-review | 12 | 贴近 | 英文 + 1 处正向配方 | 英 | 小改 |
+| dispatching-parallel-agents | 14 | 贴近 | 英文逐字 | 英 | 直接套 |
+| using-git-worktrees | 15 | 贴近 | 英文 + house form 表 | 英 | 小改 |
+| using-superpowers | 90 | 远 | 翻译交织 | 中 | 重译落位 |
+| requesting-code-review | 136 | 远 | 翻译交织 | 中 | 重译落位 |
+| finishing-a-development-branch | 205 | 远 | 翻译交织 | 中 | 重译落位 |
+| test-driven-development | 340 | 远 | 翻译交织 | 中 | 重译落位 |
+| writing-plans | 349 | 远 | 翻译交织 | 中 | 重译落位 |
+| brainstorming | 452 | 远 | 翻译交织 | 中 | 重译落位 |
+| executing-plans | 476 | 远 | 全文重写 | 中 | 设计级移植 |
+| subagent-driven-development | 645 | 远 | 设计级重写 | 中 | 设计级移植 |
 
-历史对照：中文化前 5 个技能（verification/receiving/systematic/dispatching/worktrees）为「贴近」档（diff 2–54，同步可直接套官方）——2026-09-28 为语言一致性付出的已知情代价（用户裁决全文翻译）。辅助文件：`code-reviewer.md`（268）/ `implementer-prompt.md`（255）为重写级；`writing-good-tests.md` diff=220（Lite 重写 66 行 vs 官方 198 行）；systematic-debugging 的 **9 个**附属文件 diff=0，`find-polluter.sh` 仅注释折行差异、代码同官方修好版；Lite 独有 2 文件（`diagram-driven-design.md` / `spec-reviewer-prompt.md`）零冲突（`copilot-tools.md` 已于 2026-09-28 删除并内联）。
+**2026-09-28 语言分层裁决（收回当日上午的「全文中文化」决策）：** 测试夹具与 diff≤60 的对照层一律英文——保住「直接套 / 小改」的同步能力；diff≥84 的改造层用简体中文——对照性本就靠人读两份文档，翻译不额外损失。清单与检测是 `tests/smoke.sh` 第 4 类断言（权威源）。5 文件（verification / systematic / dispatching / receiving / worktrees）回退英文，「贴近」档从 0 恢复到 5 个；回退时以英文形态保留了两处 Match the Form 实质改造（receiving 的正向配方、worktrees 的 house form 表），未走 `git checkout` 整文件回滚。
+
+**意外收获：** worktrees 的 house form 转表**与官方 v6.4.1 的演进方向一致**（官方尾部已是 `Common Rationalizations` 表），故转表后 diff 反从 54 降到 15——上一轮的实质改造实际是补齐了官方形态。
+
+**对照层剩余 drift（保留英文才看得见，属下次同步的直接收获）：**
+
+| 文件 | drift |
+|---|---|
+| receiving L30 / L127 | 官方已改「explicit CLAUDE.md violation」→「explicit instruction-file violation」（通用化）；已删 "Strange things are afoot at the Circle K"，改为正向表达——**待跟** |
+| worktrees L93 / house form | Lite 精简掉 1 行 `# Determine path based on chosen location` 注释；house form 表 Lite 7 行 vs 官方 5 行（Lite 多「基线测试」「依赖 setup」2 条） |
+| receiving `Response Wording` | Lite 正向配方 vs 官方 `Forbidden Responses` 禁止式——Match the Form 改造，**有意保留** |
+
+辅助文件：`code-reviewer.md`（268）/ `implementer-prompt.md`（255）为重写级；`writing-good-tests.md` diff=220（Lite 重写 66 行 vs 官方 198 行）；systematic-debugging 的 **9 个**附属文件 diff=0（英文，随对照层），`find-polluter.sh` 仅注释折行差异、代码同官方修好版；Lite 独有 2 文件（`diagram-driven-design.md` / `spec-reviewer-prompt.md`）零冲突（`copilot-tools.md` 已于 2026-09-28 删除并内联）；测试夹具 `test-*.md` 一律英文。
 
 ---
 
@@ -244,4 +256,5 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 | v4 + 正向映射 | 2026-09-24 | 官方无增量（四路核实）；10 项修复；77 条完备性证明 | 2a7e5a1（l1） |
 | l2 发版 | 2026-09-24 | 插件市场结构（plugin.json / marketplace.json / hooks） | 2106fce |
 | 文档瘦身四连 | 2026-09-24~28 | CLAUDE.md 190→28 行；README 463/470→225/229；SDD 498→143 行（方法论重构）；UPSTREAM 553→230 行（台账整合）+ 文件层查漏补缺 | c7981a2 / 7c12907 / d49f380 / f92eadd |
-| 待办清算轮 | 2026-09-28 | 10 项待办全清（裁决 3 + 执行 7）：6 文件中文化（5 SKILL.md + finishing）、house form 转表（finishing/worktrees，17+27 条规则零丢失）、全库措辞审查、报告顾虑标签 `[bug]/[观察]/[下一步]`、自审命名统一（文档自审/任务自审）、平台映射同步（codex/gemini 按 v6.4.1 重译）、`tests/smoke.sh`、copilot-tools 内联删除 | 本轮 |
+| 待办清算轮 | 2026-09-28 | 10 项待办全清（裁决 3 + 执行 7）：6 文件中文化（5 SKILL.md + finishing）、house form 转表（finishing/worktrees，17+27 条规则零丢失）、全库措辞审查、报告顾虑标签 `[bug]/[观察]/[下一步]`、自审命名统一（文档自审/任务自审）、平台映射同步（codex/gemini 按 v6.4.1 重译）、`tests/smoke.sh`、copilot-tools 内联删除 | b8c2035 / fa82935 |
+| 语言分层轮 | 2026-09-28 | 收回「全文中文化」决策：测试夹具 + 对照层（diff≤60）一律英文、改造层（diff≥84）中文。5 文件回退英文（保留 2 处 Match the Form 实质改造），「贴近」档 0→5；`tests/smoke.sh` 增第 4 类语言断言（先 RED 后 GREEN）；基线表三次刷新并补 drift 清单 | v6.4.1-l3 |

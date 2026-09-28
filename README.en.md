@@ -189,7 +189,7 @@ cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
 # Verify: the bootstrap carries the triage (Spike), executing-plans is
 # present, and no Lite-deleted official file survived
 grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
-  && grep -q "6.4.1-l2" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && grep -q "6.4.1-l3" "$SP/$VER/skills/using-superpowers/SKILL.md" \
   && ls "$SP/$VER/skills/executing-plans/SKILL.md" \
   && [ ! -e "$SP/$VER/skills/writing-skills" ] \
   && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \
