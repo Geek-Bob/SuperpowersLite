@@ -47,6 +47,9 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | **小任务合并派发** | 6.3.0 | SDD | 每次派发重付数十 k 固定开销，同形小任务最付不起 |
 | **禁嵌套派发** | 6.3.0 | SDD | 嵌套 = 重复审查席位 + 上下文树指数爆炸 |
 | **计划文件 Rulings 区** | 6.3.0 | SDD / writing-plans | 原先冲突上呈，改为记 Ruling 继续 |
+| **审查-修复收敛**（一轮审查 + 逐条核对 + 冲突上呈，轮数上限 2） | — | SDD / EP / 两个审查员模板 | 修复制造新审查面，「修完重审」结构上无终点；审查是判断不是测量，同一 diff 多轮结论本就漂移。核对表的输出形状封死「再报一轮新问题」的入口 |
+| **设计文档自审合并为一次**（占位符/一致性/范围/歧义/YAGNI/完整性/需求一致性） | — | brainstorming | 两场审计维度重叠，第二场纯付 token；一次跑完、就地修复、不重新审阅 |
+| **计划文档审查改派子代理** | — | writing-plans | 计划有客观结构面（依赖图环、文件冲突、Task 引用）可由外部审查员独立验；作者写长计划时容易漏依赖 |
 | 三路径分类 Spike / Bounded / Architectural | 6.3.0 | brainstorming | （fork 前已同构，此处归类采纳） |
 | Global Constraints 逐字块 | 6.0.0 | writing-plans | |
 | 每任务 Interfaces（Consumes/Produces，Lite 升级为 DAG 自动分层） | 6.0.0 | writing-plans | |
@@ -73,6 +76,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | **#2320 控制器降档嵌套** | 6.4.1 | Lite 极简路线：主会话即控制器，嵌套降档徒增复杂度；要省成本直接换更便宜的会话模型 | 深度成本敏感场景少一档省法；可接受 |
 | **#2089 审查员重读不可读证据** | 6.3.0 | 部分承接：「无法从 diff 判定」+ 按需读代码已覆盖主语义；重读 vs 重跑的显式区分不引入（零脚本路线） | 极端场景审查员多跑一次套件；可接受 |
 | **Kimi/Pi/Antigravity/Devin/Hermes/Grok/OpenCode/Muse/Qwen 平台** | 6.0.0–6.4.1 | Lite 只支持 Codex/Copilot/Gemini 三平台 | 少数平台用户不可用 |
+| **`spec-document-reviewer-prompt.md`**（设计文档审查员模板） | — | **用户裁决删除**（2026-09-30）。设计文档审计改为作者一次自审（占位符 / 内部一致性 / 范围 / 歧义 / YAGNI / 完整性 / 需求一致性），不派子代理；该模板在 `skills/` 内本就零引用（官方与 Lite 两边都是孤儿） | 无——自审清单已覆盖其全部检查项 |
 | **pre-flight 预检** | 6.0.0 | 上移至 writing-plans DAG——依赖在分层时已解析 | 无 |
 
 ### 已独立同构（双方各自走到同一设计，无需动作）
@@ -106,6 +110,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | **插件名 superpowers 与官方同名互斥** | 库内几十处 `superpowers:xxx` 技能引用不改前缀，改前缀=全库改动+每次同步多维护一层差异；Lite 语义即「官方替代品」，不能与官方共存 |
 | **NOTICE.md 衍生声明** | MIT 衍生分发合规（LICENSE 与官方逐字相同，衍生声明单独成件）——勿删 |
 | **插件工程面（l2 定界）** | **接管**：`.claude-plugin/`（plugin.json + marketplace.json，自建市场 `superpowerslite`）+ `hooks/` 三件原样拷贝（注入器读 Lite 中文 bootstrap 直接生效，脚本无本地化语义）。**不接管**：tests/、scripts/、AGENTS.md、package.json、index.js、gemini-extension.json、assets/、官方 docs/（移植文档）、CODE_OF_CONDUCT.md——超出「中文轻量技能库」最小必要面 |
+| **审查-修复收敛**（一轮审查 + 逐条核对 + 冲突上呈） | 官方是「修复后重跑审查，5 轮自裁」。但修复制造新审查面，重审结构上没有终点；审查是判断不是测量，同一 diff 多轮结论本就漂移——真实会话出现「第三轮推翻第二轮、据改反了」。Lite：完整审查只跑一轮 → ONE fix → 逐条核对（已修 / 判不成立 / 延后）→ 仅「本次修复引入且指认得出 `file:line`」的缺陷可开第二轮（上限 2）；**结论冲突不自动改反**，写进「结论冲突清单」上呈用户 |
 | **最小结构冒烟测试**（`tests/smoke.sh`） | 3 项机械断言（frontmatter 合法 / markdown 引用文件存在 / `superpowers:` 技能引用可解析），零依赖，已做灵敏度验证（注入坏引用即红）。官方 66 个测试不适用 Lite 结构——机械约束自动化，判断类留给审查 |
 
 > ⚠️ 注意：官方 6.1.0 曾把 bootstrap 的图换成散文（理由是每会话成本）。Lite 的双阶段图表策略用于**设计文档**，不与 bootstrap 冲突——两处用途不同。
@@ -129,7 +134,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | `## Verification` 并入 §4 | 无损合并 |
 | 删 Pre-flight 改由 writing-plans DAG 表承接 | 好的简化 |
 | `Common Rationalizations` → 红线（writing-skills 删除前） | 好的简化 |
-| 文档自审不派子代理（方法论议题） | 自审输入是「自己刚写的文档」已在上下文中，不产生新污染；派子代理要从零再读一遍 |
+| 文档自审不派子代理（方法论议题） | **spec 侧维持**——自审输入是「自己刚写的文档」已在上下文中，不产生新污染，派子代理要从零再读一遍（2026-09-30 进一步合并为一次审计）；**plan 侧推翻**（2026-09-30 用户裁决）——计划有客观结构面（依赖图环、文件冲突、Task 引用）可由外部审查员独立验，且作者写长计划时容易漏依赖，改派子代理 |
 | 外部记忆（NOTES.md / ledger 议题） | 维持计划文件承担（checkbox + Rulings 区）——复用已在工件，避免第二真相源 |
 | 判据排序议题（质量优先 15× token 换 +90%） | 维持「减少流程 > 减少 token > 高质量」——论文基线是无外部记忆的单 agent，Lite 已用指针化+报告契约吃掉大部分污染 |
 | `requesting-code-review` 的 `## 与工作流的集成` | Lite 独有，非冗余 |
@@ -191,12 +196,12 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 
 ## 文件层总览（2026-09-28 对照官方 v6.4.1 实测）
 
-skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；另有顶层新增 5 文件、hooks 三件原样拷贝（字节级一致）。
+skills/：官方 75 文件 → Lite 31（**删 46 / 共有 29 / 新增 2**）；另有顶层新增 5 文件、hooks 三件原样拷贝（字节级一致）。
 
 | 类 | 数 | 明细 |
 |---|---:|---|
-| 删除 | 45 | 视觉伴侣 6（无鉴权洞）· diagnosing-superpowers 整技能 20 · EP 脚本 2（task-start/task-done）· SDD 脚本 3 + 任务级模板 2 · 平台映射 5（antigravity/claude-code/hermes/muse/pi）· writing-skills 整技能 7（用户删除）——裁决见「已拒绝」 |
-| 新增（skills） | 2 | `diagram-driven-design.md` · `spec-reviewer-prompt.md`（`copilot-tools.md` 已删并内联） |
+| 删除 | 46 | 视觉伴侣 6（无鉴权洞）· diagnosing-superpowers 整技能 20 · EP 脚本 2（task-start/task-done）· SDD 脚本 3 + 任务级模板 2 · 平台映射 5（antigravity/claude-code/hermes/muse/pi）· writing-skills 整技能 7（用户删除）· `spec-document-reviewer-prompt.md` 1（用户删除，孤儿模板）——裁决见「已拒绝」 |
+| 新增（skills） | 2 | `diagram-driven-design.md` · `spec-reviewer-prompt.md`（曾有的 `copilot-tools.md` 是 Lite 独有、非官方文件，2026-09-28 已删并内联） |
 | 新增（顶层） | 5 | `UPSTREAM.md` · `README.en.md` · `NOTICE.md` · `.claude-plugin/` 两件（plugin.json + marketplace.json） |
 | 修改 | 21 | 全部为 SKILL.md / 模板文件，diff 明细见下方「技能贴近度基线」 |
 | 逐字相同 | 9 | 全部为 systematic-debugging 附属文件 |
@@ -222,10 +227,10 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 | requesting-code-review | 136 | 远 | 翻译交织 | 中 | 重译落位 |
 | finishing-a-development-branch | 205 | 远 | 翻译交织 | 中 | 重译落位 |
 | test-driven-development | 340 | 远 | 翻译交织 | 中 | 重译落位 |
-| writing-plans | 349 | 远 | 翻译交织 | 中 | 重译落位 |
-| brainstorming | 452 | 远 | 翻译交织 | 中 | 重译落位 |
-| executing-plans | 476 | 远 | 全文重写 | 中 | 设计级移植 |
-| subagent-driven-development | 645 | 远 | 设计级重写 | 中 | 设计级移植 |
+| writing-plans | 292 | 远 | 翻译交织 | 中 | 重译落位 |
+| brainstorming | 408 | 远 | 翻译交织 | 中 | 重译落位 |
+| executing-plans | 479 | 远 | 全文重写 | 中 | 设计级移植 |
+| subagent-driven-development | 690 | 远 | 设计级重写 | 中 | 设计级移植 |
 
 **2026-09-28 语言分层裁决（收回当日上午的「全文中文化」决策）：** 测试夹具与 diff≤60 的对照层一律英文——保住「直接套 / 小改」的同步能力；diff≥84 的改造层用简体中文——对照性本就靠人读两份文档，翻译不额外损失。清单与检测是 `tests/smoke.sh` 第 4 类断言（权威源）。5 文件（verification / systematic / dispatching / receiving / worktrees）回退英文，「贴近」档从 0 恢复到 5 个；回退时以英文形态保留了两处 Match the Form 实质改造（receiving 的正向配方、worktrees 的 house form 表），未走 `git checkout` 整文件回滚。
 
@@ -264,3 +269,4 @@ skills/：官方 75 文件 → Lite 33（**删 45 / 共有 30 / 新增 3**）；
 | 文档瘦身四连 | 2026-09-24~28 | CLAUDE.md 190→28 行；README 463/470→225/229；SDD 498→143 行（方法论重构）；UPSTREAM 553→230 行（台账整合）+ 文件层查漏补缺 | c7981a2 / 7c12907 / d49f380 / f92eadd |
 | 待办清算轮 | 2026-09-28 | 10 项待办全清（裁决 3 + 执行 7）：6 文件中文化（5 SKILL.md + finishing）、house form 转表（finishing/worktrees，17+27 条规则零丢失）、全库措辞审查、报告顾虑标签 `[bug]/[观察]/[下一步]`、自审命名统一（文档自审/任务自审）、平台映射同步（codex/gemini 按 v6.4.1 重译）、`tests/smoke.sh`、copilot-tools 内联删除 | b8c2035 / fa82935 |
 | 语言分层轮 | 2026-09-28 | 收回「全文中文化」决策：测试夹具 + 对照层（diff≤60）一律英文、改造层（diff≥84）中文。5 文件回退英文（保留 2 处 Match the Form 实质改造），「贴近」档 0→5；`tests/smoke.sh` 增第 4 类语言断言（先 RED 后 GREEN）；基线表三次刷新并补 drift 清单 | 6b1f904（l3） |
+| 审查收敛与瘦身轮 | 2026-09-30 | 斩断审查-修复死循环：完整审查只跑一轮 → ONE fix → **逐条核对**（已修/判不成立/延后），核对表输出形状封死「再报新问题」入口，仅本次修复引入的可指认缺陷开第二轮（上限 2）；**结论冲突上呈用户，不自动改反**。spec 两场审计合并为一次（删孤儿模板）；计划审查改派子代理（`plan-document-reviewer-prompt.md`）。三技能瘦身：brainstorming 271→157、writing-plans 297→238、SDD 143→146（含新增收敛条款） | 待回填 |

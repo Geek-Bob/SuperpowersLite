@@ -96,12 +96,12 @@ flowchart TD
 ```mermaid
 flowchart LR
     GATE{"Review gate"} --> SR["Overall spec-review<br/>(requirement side: always)"]
-    SR -->|"❌ fix subagent, re-run"| SR
-    SR -->|"✅"| CD{"Deliverable has<br/>executable code?"}
-    CD -->|"No (pure docs / skills)"| FIN2["finishing: branch wrap-up"]
+    SR --> CD{"Deliverable has<br/>executable code?"}
+    CD -->|"No (pure docs / skills)"| FIX["ONE fix: fix them all<br/>→ verify each disposition"]
     CD -->|"Yes"| CR["Overall code-review<br/>(code portion only)"]
-    CR -->|"❌ fix subagent, re-run"| CR
-    CR -->|"✅"| FIN2
+    CR --> FIX
+    FIX -->|"verification passes"| FIN2["finishing: branch wrap-up"]
+    FIX -.->|"only defects introduced by<br/>this fix can open round 2 (max 2)"| FIX
 ```
 
 Task-level details (per-task flow, progress persistence, forbidden actions) live in the corresponding skill files under `skills/`.
@@ -120,15 +120,16 @@ Task-level details (per-task flow, progress persistence, forbidden actions) live
 | 👀 | Controller self-reviews | **Routed review gates** (spec-review always; code-review when the deliverable has executable code), reviewer has full global perspective |
 | 💾 | TaskUpdate only, progress lost on session end | Edit plan file checkbox in real-time, file is persistent source of truth |
 | 🔧 | Fixes lose context | New implementer + original task context + review issue list |
-| 📋 | Upstream keeps both a self-review step and orphan review templates | Document reviews are **self-review**, independent perspective reserved for the user gate |
+| 📋 | Two self-review passes plus two orphan review templates | Document audit runs **once**: self-review for specs, a subagent for plans |
+| 🚦 | Re-run the review after fixing, self-adjudicate over 5 rounds | **One review round + per-item verification**; conflicting verdicts go to the user, never silently reverted |
 | 🛤️ | Two execution paths, but executing-plans is a 64-line stub | Both paths implemented; Native inline rewritten minimally (zero scripts) |
 | 🏗️ | Code review lacks architecture checks | Added file responsibility/testability/structure compliance/bloat checks |
 
 Three differences worth expanding on:
 
-**Routed review gates.** After all tasks complete, the review gate runs: the requirement side (coverage / inter-task consistency / scope creep) always runs; the quality side runs only when the deliverable contains executable code, and only over the code — for pure doc/skill tasks, code-review's checklist (error handling, type safety, schema migration) is meaningless for Markdown and only yields noise findings. Embedded code snippets do get reviewed — a `.md` file buys no free pass.
+**Routed review gates + convergence.** After all tasks complete, the review gate runs: the requirement side (coverage / inter-task consistency / scope creep) always runs; the quality side runs only when the deliverable contains executable code, and only over the code — for pure doc/skill tasks, code-review's checklist (error handling, type safety, schema migration) is meaningless for Markdown and only yields noise findings. Embedded code snippets do get reviewed — a `.md` file buys no free pass. **The review runs once**: full review → ONE fix → per-item disposition verification (fixed / overruled / deferred); verification produces no new findings — a fix creates a new review surface, so "fix, then re-review" has no terminal condition. Only defects introduced by that fix and pinpointed to a `file:line` can open a second round (max 2). **Conflicting verdicts are never silently reverted**: when a later reviewer overturns an accepted ruling, it goes into the conflict list for the user — flip-flopping costs more than a missed defect.
 
-**Self-review for documents.** Upstream `Self-Review` says plainly "not a subagent dispatch", and the two `*-document-reviewer-prompt.md` files are deliberate orphans there. Lite had mistakenly wired them back in; the 2026-09-23 re-check corrected this to **running the checklist yourself** (structural quality + requirement fidelity, one pass each), reserving the independent perspective for the user gate — the last and most effective one.
+**Document audit runs once.** Upstream `Self-Review` says plainly "not a subagent dispatch", and the two `*-document-reviewer-prompt.md` files are deliberate orphans there. The design document audit is run by the author **in one pass over 7 dimensions** (placeholders / internal consistency / scope / ambiguity / YAGNI / completeness / requirement fidelity), fixing in place and moving on — no subagent, no second review. Plans are the opposite: they have objective structural surface (dependency cycles, file conflicts, task references), so a subagent reviews them (`plan-document-reviewer-prompt.md`).
 
 **Two execution paths.** `executing-plans` borrows upstream v6.4.1's Native inline execution, rewritten minimally (~100 lines, zero scripts) — this session implements every task itself, the **cheapest** option. The dividing line vs SDD: whether you want a per-task review gate × how long the plan is × fixed overhead × task count. Both share the same precondition (tasks mostly independent); tightly coupled tasks suit neither.
 
