@@ -107,7 +107,7 @@ Lite 的立场：**跟着官方走，只做优化与简化**。每项上游变�
 | **Consumes 文件指针**（`(@路径)`） | 下游子代理直接 Read 契约定义，免去全库 Grep |
 | **「固定开销 × 任务数」判据** | 每次派发重付数十 k token 启动开销，任务少时占大头 → 判据从「任务多就走 SDD」变为「隔离收益抵得过启动费才走 SDD」（实测见「成本校准」） |
 | **TDD 测试输出重定向** | 全量套件日志数千行；重定向到文件 + grep 失败名与汇总行，只读关键行回上下文 |
-| **插件名 superpowers 与官方同名互斥** | 库内几十处 `superpowers:xxx` 技能引用不改前缀，改前缀=全库改动+每次同步多维护一层差异；Lite 语义即「官方替代品」，不能与官方共存。**2026-09-30 实证：** 两个同名源曾并存于本机（`superpowers@superpowerslite` + `superpowers@claude-plugins-official` 5.1.0），升级 l4 后已卸载官方源解除歧义 |
+| **插件名 superpowers 与官方同名互斥** | 库内几十处 `superpowers:xxx` 技能引用不改前缀，改前缀=全库改动+每次同步多维护一层差异；Lite 语义即「官方替代品」，不能与官方共存。**2026-09-30 实证：** 两个同名源曾并存于本机（`superpowers@superpowerslite` + `superpowers@claude-plugins-official` 5.1.0），升级 l4 后已卸载官方源解除歧义。**连带坑（推断）：** 卸载同名官方插件后 `superpowers@superpowerslite` 变为 `disabled`（`claude plugin list` 可见），hook 不再注入、技能不加载——`claude plugin enable superpowers@superpowerslite` 恢复。同名卸载可能按名字匹配误伤，发版更新后务必复查 `plugin list` 状态列 |
 | **NOTICE.md 衍生声明** | MIT 衍生分发合规（LICENSE 与官方逐字相同，衍生声明单独成件）——勿删 |
 | **插件工程面（l2 定界）** | **接管**：`.claude-plugin/`（plugin.json + marketplace.json，自建市场 `superpowerslite`）+ `hooks/` 三件原样拷贝（注入器读 Lite 中文 bootstrap 直接生效，脚本无本地化语义）。**不接管**：tests/、scripts/、AGENTS.md、package.json、index.js、gemini-extension.json、assets/、官方 docs/（移植文档）、CODE_OF_CONDUCT.md——超出「中文轻量技能库」最小必要面 |
 | **审查-修复收敛**（一轮审查 + 逐条核对 + 冲突上呈） | 官方是「修复后重跑审查，5 轮自裁」。但修复制造新审查面，重审结构上没有终点；审查是判断不是测量，同一 diff 多轮结论本就漂移——真实会话出现「第三轮推翻第二轮、据改反了」。Lite：完整审查只跑一轮 → ONE fix → 逐条核对（已修 / 判不成立 / 延后）→ 仅「本次修复引入且指认得出 `file:line`」的缺陷可开第二轮（上限 2）；**结论冲突不自动改反**，写进「结论冲突清单」上呈用户 |
