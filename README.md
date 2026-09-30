@@ -186,7 +186,7 @@ cp -r SuperpowersLite/skills/* "$SP/$VER/skills/"
 
 # 校验：bootstrap 含三路径分类（Spike），executing-plans 已就位，且 Lite 已删的官方文件无残留
 grep -q "Spike" "$SP/$VER/skills/using-superpowers/SKILL.md" \
-  && grep -q "6.4.1-l3" "$SP/$VER/skills/using-superpowers/SKILL.md" \
+  && grep -q "6.4.1-l4" "$SP/$VER/skills/using-superpowers/SKILL.md" \
   && ls "$SP/$VER/skills/executing-plans/SKILL.md" \
   && [ ! -e "$SP/$VER/skills/writing-skills" ] \
   && [ ! -e "$SP/$VER/skills/brainstorming/scripts" ] \
